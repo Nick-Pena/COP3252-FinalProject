@@ -3,7 +3,7 @@ public class Card {
     private Suit cardSuit;
 
     public enum Suit {
-        Clubs, Diamonds, Hearts, Spades
+        Club, Diamonds, Hearts, Spade
     }
 
     public Card(){
@@ -14,7 +14,7 @@ public class Card {
         rank = n;
         cardSuit = s;
     }
-    int getNumber(){
+    int getRank(){
         return rank;
     }
     void setNumber(int n){
@@ -25,5 +25,29 @@ public class Card {
     }
     void setCardSuit(Suit s){
         cardSuit = s;
+    }
+
+    String printCard()
+    {
+        String output;
+        switch(rank)
+        {
+            case 11:
+                output = "Jack of " + cardSuit;
+                break;
+            case 12:
+                output = "Queen of " + cardSuit;
+                break;
+            case 13:
+                output = "King of " + cardSuit;
+                break;
+            case 14:
+                output = "Ace of " + cardSuit;
+                break;
+            default:
+                output = rank + " of " + cardSuit;
+                break;
+        }
+        return output;
     }
 }

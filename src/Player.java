@@ -22,4 +22,9 @@ public class Player {
     {
         return new Card(1, Card.Suit.Hearts);
     }
+
+    protected void printHand()
+    {
+
+    }
 }

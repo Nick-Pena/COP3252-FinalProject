@@ -4,6 +4,6 @@ public class HumanPlayer extends Player {
 
     HumanPlayer()
     {
-        hand = new Vector<Card>();
+        hand = new Vector<>();
     }
 }
