@@ -1,44 +1,139 @@
-import javax.swing.*;
-import java.awt.*;
+import java.util.Scanner;
+import java.util.Vector;
 
 public class Game
 {
     static CardDeck cd = new CardDeck();
     static Card.Suit trumpSuit;
-
-    static JFrame gameFrame = new JFrame("Durak Game");
+    static Vector<Card> turnCards = new Vector<>();
     public static void main(String [] args){
 
+        int numPlayers = 2;
+
         HumanPlayer you = new HumanPlayer();
-        ComputerPlayer bot = new ComputerPlayer();
+        ComputerPlayer cpu = new ComputerPlayer();
 
-        you.setTurn(1);
         cd.dealPlayer(you);
-
-        bot.setTurn(2);
-        cd.dealPlayer(bot);
-
+        cd.dealPlayer(cpu);
         trumpSuit = cd.getTrumpSuit();
 
-        playerCardDisplay playerHand = new playerCardDisplay(you);
+        turnOrder(you, cpu);
+        System.out.println("Human's turn is " + you.getTurn());
+        System.out.println("CPU's turn is " + cpu.getTurn());
 
-        gameFrame.add(playerHand);
-        gameFrame.setSize(800, 600);
-        gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        gameFrame.setVisible(true);
+        System.out.println("The trump suit is " + trumpSuit + "\n");
+
+        // testing with one player and one bot
+        int itr = 0;
+        while(you.hand.size() != 0 && cpu.hand.size() != 0)
+        {
+            System.out.println("Your hand is as follows.");
+            you.printHand();
+
+            System.out.println("\nThe cpu's hand is as follows.");
+            cpu.printHand();
+
+            switch(itr % 2)
+            {
+                case 0:
+                    playerAttackBot(you, cpu);
+                    break;
+                case 1:
+                    botAttackPlayer(you, cpu);
+                    break;
+            }
+
+            itr++;
+        }
+
+        if(you.hand.size() == 0)
+        {
+            System.out.println("you are winner");
+        }
+        else
+        {
+            System.out.println("cpu is winner");
+        }
     }
-
-    // vector/other collection for graveyard?
-    // every index % 2 can be a new pair of cards
 
     // TODO: create method to handle "battles" and their outcomes
 
-    // TODO: check for win condition should be simple. just check if any player's hand == 0, game over/they are a winner
+    private static void turnOrder(HumanPlayer human, ComputerPlayer computer)
+    {
+        Card humanBestCard = new Card(14, trumpSuit),
+             cpuBestCard = new Card(14, trumpSuit);
 
-    boolean validMoveCheck(Card attackerCard, Card defenderCard)
+        for(int i = 0; i < 6; i++)
+        {
+            if(human.hand.elementAt(i).getCardSuit() == trumpSuit
+                    && humanBestCard.getRank() > human.hand.elementAt(i).getRank())
+            {
+                humanBestCard = human.hand.elementAt(i);
+            }
+            if(computer.hand.elementAt(i).getCardSuit() == trumpSuit
+                    && cpuBestCard.getRank() > computer.hand.elementAt(i).getRank())
+            {
+                cpuBestCard = computer.hand.elementAt(i);
+            }
+        }
+
+        if(humanBestCard.getRank() < cpuBestCard.getRank())
+        {
+            human.setTurn(1);
+            computer.setTurn(2);
+        }
+        else
+        {
+            computer.setTurn(1);
+            human.setTurn(2);
+        }
+    }
+
+    private static void playerAttackBot(HumanPlayer attacker, ComputerPlayer defender)
+    {
+        Scanner playerScan = new Scanner(System.in);
+
+        System.out.println("\nWhat card are you gonna use?");
+        Card attackerChoice = attacker.playCard(attacker.hand.elementAt(playerScan.nextInt() - 1));
+        System.out.println("You chose " + attackerChoice.printCard());
+        attacker.playCard(attackerChoice);
+        Card defenderChoice = new Card();
+        if(!defender.defend(attackerChoice, turnCards))
+        {
+            System.out.println("The bot passes its turn.");
+            for(int i = 0; i < turnCards.size(); i++)
+            {
+                defender.hand.add(turnCards.elementAt(i));
+            }
+            return;
+        }
+
+        System.out.println("The bot chose " + defenderChoice.printCard());
+        defender.hand.remove(defenderChoice);
+    }
+
+    private static void botAttackPlayer(HumanPlayer defender, ComputerPlayer attacker)
+    {
+        Card attackerChoice = attacker.attack();
+        System.out.println("The attacker chose " + attackerChoice.printCard());
+        attacker.hand.remove(attackerChoice);
+
+        System.out.println("What do you wanna do?");
+        Scanner playerScan = new Scanner(System.in);
+        Card defenderChoice = defender.hand.elementAt(playerScan.nextInt() - 1);
+        while(!validMoveCheck(attackerChoice, defenderChoice))
+        {
+            System.out.println("Choose again");
+            defenderChoice = defender.hand.elementAt(playerScan.nextInt() - 1);
+        }
+        System.out.println("You played " + defenderChoice.printCard());
+        defender.playCard(defenderChoice);
+    }
+
+    private static boolean validMoveCheck(Card attackerCard, Card defenderCard)
     {
         if(attackerCard.getCardSuit() == defenderCard.getCardSuit()
-                && defenderCard.getNumber() > attackerCard.getNumber())
+                && defenderCard.getRank() > attackerCard.getRank())
         {
             return true;
         }
@@ -46,60 +141,5 @@ public class Game
         // if true, we can assume the move is valid
         // if false, the move is assumed to be invalid
         else return defenderCard.getCardSuit() == trumpSuit;
-    }
-}
-
-class playerCardDisplay extends JPanel
-{
-
-    // placeholder hand display for any given player
-    // use primarily for debugging/testing for now
-    // TODO: work on display first maybe? figure it out on thursday
-    public playerCardDisplay(Player player)
-    {
-        setLayout(new GridBagLayout());
-
-        JButton[] cardButtons = new JButton[player.hand.size()];
-        for(int i = 0; i < player.hand.size(); i++)
-        {
-            // jack, queen, king, ace assignment of text
-            switch(player.hand.elementAt(i).getNumber())
-            {
-                case 11:
-                    cardButtons[i] = new JButton("Jack of "
-                            + player.hand.elementAt(i).getCardSuit());
-                    break;
-                case 12:
-                    cardButtons[i] = new JButton("Queen of "
-                            + player.hand.elementAt(i).getCardSuit());
-                    break;
-                case 13:
-                    cardButtons[i] = new JButton("King of "
-                            + player.hand.elementAt(i).getCardSuit());
-                    break;
-                case 14:
-                    cardButtons[i] = new JButton("Ace of "
-                            + player.hand.elementAt(i).getCardSuit());
-                    break;
-                default:
-                    cardButtons[i] = new JButton(player.hand.elementAt(i).getNumber() + " of "
-                            + player.hand.elementAt(i).getCardSuit());
-                    break;
-            }
-
-            if(player.hand.elementAt(i).getCardSuit() == Card.Suit.Hearts ||
-                    player.hand.elementAt(i).getCardSuit() == Card.Suit.Diamonds)
-            {
-                cardButtons[i].setForeground(Color.RED);
-            }
-            else if(player.hand.elementAt(i).getCardSuit() == Card.Suit.Spades ||
-                        player.hand.elementAt(i).getCardSuit() == Card.Suit.Clubs)
-            {
-                cardButtons[i].setForeground(Color.BLACK);
-            }
-
-            add(cardButtons[i]);
-            cardButtons[i].setVisible(true);
-        }
     }
 }
