@@ -17,4 +17,9 @@ public class Player {
     {
         turn = _turn;
     }
+
+    protected Card playCard()
+    {
+        return new Card(1, Card.Suit.Hearts);
+    }
 }

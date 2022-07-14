@@ -1,8 +1,8 @@
 public class Card {
     private int rank;
-    private suit cardSuit;
+    private Suit cardSuit;
 
-    public enum suit{
+    public enum Suit {
         Club, Diamonds, Hearts, Spade
     }
 
@@ -10,7 +10,7 @@ public class Card {
 
     }
 
-    public Card(int n, suit s){
+    public Card(int n, Suit s){
         rank = n;
         cardSuit = s;
     }
@@ -20,10 +20,10 @@ public class Card {
     void setNumber(int n){
         rank = n;
     }
-    suit getCardSuit(){
+    Suit getCardSuit(){
         return cardSuit;
     }
-    void setCardSuit(suit s){
+    void setCardSuit(Suit s){
         cardSuit = s;
     }
 }
