@@ -3,7 +3,7 @@ public class Card {
     private Suit cardSuit;
 
     public enum Suit {
-        Clubs, Diamonds, Hearts, Spades
+        Club, Diamonds, Hearts, Spade
     }
 
     public Card(){
@@ -14,7 +14,7 @@ public class Card {
         rank = n;
         cardSuit = s;
     }
-    int getNumber(){
+    int getRank(){
         return rank;
     }
     void setNumber(int n){

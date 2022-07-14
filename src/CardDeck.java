@@ -1,3 +1,4 @@
+import java.util.Random;
 import java.util.Vector;
 
 public class CardDeck{
@@ -17,13 +18,13 @@ public class CardDeck{
         for (int i = 0; i < DECK_SIZE; i++){
             switch(i % 4){
                 case 0:
-                    deck.addElement(new Card(rank, Card.Suit.Clubs));
+                    deck.addElement(new Card(rank, Card.Suit.Club));
                     break;
                 case 1:
                     deck.addElement(new Card(rank, Card.Suit.Hearts));
                     break;
                 case 2:
-                    deck.addElement(new Card(rank, Card.Suit.Spades));
+                    deck.addElement(new Card(rank, Card.Suit.Spade));
                     break;
                 case 3:
                     deck.addElement(new Card(rank, Card.Suit.Diamonds));
