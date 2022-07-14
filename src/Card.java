@@ -3,7 +3,7 @@ public class Card {
     private Suit cardSuit;
 
     public enum Suit {
-        Club, Diamonds, Hearts, Spade
+        Clubs, Diamonds, Hearts, Spades
     }
 
     public Card(){

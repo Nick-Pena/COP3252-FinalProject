@@ -4,6 +4,6 @@ public class ComputerPlayer extends Player {
 
     public ComputerPlayer()
     {
-        hand = new Vector<>();
+        hand = new Vector<Card>();
     }
 }
