@@ -18,13 +18,12 @@ public class Player {
         turn = _turn;
     }
 
-    protected Card playCard()
-    {
-        return new Card(1, Card.Suit.Hearts);
-    }
 
     protected void printHand()
     {
-
+        for(int i = 0; i < hand.size(); i++)
+        {
+            System.out.println(i + 1 + ") " + hand.elementAt(i).printCard());
+        }
     }
 }

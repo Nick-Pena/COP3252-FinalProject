@@ -56,8 +56,6 @@ public class Game
         }
     }
 
-    // TODO: create method to handle "battles" and their outcomes
-
     private static void turnOrder(HumanPlayer human, ComputerPlayer computer)
     {
         Card humanBestCard = new Card(14, trumpSuit),
@@ -89,45 +87,44 @@ public class Game
         }
     }
 
-    private static void playerAttackBot(HumanPlayer attacker, ComputerPlayer defender)
+    // TODO: rework these functions to use new methods in ComputerPlayer
+    private static void playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
     {
         Scanner playerScan = new Scanner(System.in);
 
         System.out.println("\nWhat card are you gonna use?");
-        Card attackerChoice = attacker.playCard(attacker.hand.elementAt(playerScan.nextInt() - 1));
+        Card attackerChoice = humanAttacker.hand.elementAt(playerScan.nextInt() - 1);
         System.out.println("You chose " + attackerChoice.printCard());
-        attacker.playCard(attackerChoice);
-        Card defenderChoice = new Card();
-        if(!defender.defend(attackerChoice, turnCards))
+        humanAttacker.playCard(turnCards, attackerChoice);
+
+        if(!cpuDefender.defend(attackerChoice, turnCards))
         {
             System.out.println("The bot passes its turn.");
             for(int i = 0; i < turnCards.size(); i++)
             {
-                defender.hand.add(turnCards.elementAt(i));
+                cpuDefender.hand.add(turnCards.elementAt(i));
             }
             return;
         }
 
-        System.out.println("The bot chose " + defenderChoice.printCard());
-        defender.hand.remove(defenderChoice);
+        System.out.println("The CPU (defender) chose " + turnCards.lastElement().printCard());
     }
 
-    private static void botAttackPlayer(HumanPlayer defender, ComputerPlayer attacker)
+    private static void botAttackPlayer(HumanPlayer humanDefender, ComputerPlayer cpuAttacker)
     {
-        Card attackerChoice = attacker.attack();
-        System.out.println("The attacker chose " + attackerChoice.printCard());
-        attacker.hand.remove(attackerChoice);
+        cpuAttacker.attack(turnCards);
+        System.out.println("The CPU (attacker) chose " + turnCards.lastElement().printCard());
 
         System.out.println("What do you wanna do?");
         Scanner playerScan = new Scanner(System.in);
-        Card defenderChoice = defender.hand.elementAt(playerScan.nextInt() - 1);
-        while(!validMoveCheck(attackerChoice, defenderChoice))
+        Card defenderChoice = humanDefender.hand.elementAt(playerScan.nextInt() - 1);
+        while(!validMoveCheck(turnCards.lastElement(), defenderChoice))
         {
-            System.out.println("Choose again");
-            defenderChoice = defender.hand.elementAt(playerScan.nextInt() - 1);
+            System.out.println("You can't do that");
+            defenderChoice = humanDefender.hand.elementAt(playerScan.nextInt() - 1);
         }
         System.out.println("You played " + defenderChoice.printCard());
-        defender.playCard(defenderChoice);
+        humanDefender.playCard(turnCards, defenderChoice);
     }
 
     private static boolean validMoveCheck(Card attackerCard, Card defenderCard)

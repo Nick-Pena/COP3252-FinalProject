@@ -24,6 +24,7 @@ public class ComputerPlayer extends Player {
             }
             // if there is no lowest rank regular card, attack with the lowest rank trump card
             turnCards.add(lowestAttackCard);
+            System.out.println("The CPU (attacker) chose " + lowestAttackCard.printCard());
             hand.removeElementAt(0);
             return;
         }
