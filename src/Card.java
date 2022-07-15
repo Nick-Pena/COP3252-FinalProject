@@ -1,9 +1,13 @@
+import javax.swing.*;
+
 public class Card {
     private int rank;
     private Suit cardSuit;
+    private Icon cardFace;
+    //private Icon cardBack = new ImageIcon(getClass().getResource("card_back.png"));
 
     public enum Suit {
-        Clubs, Diamonds, Hearts, Spades
+        clubs, diamonds, hearts, spades
     }
 
     public Card(){
@@ -13,21 +17,48 @@ public class Card {
     public Card(int n, Suit s){
         rank = n;
         cardSuit = s;
+
+        String output;
+        switch(rank)
+        {
+            case 11:
+                output = "jack_of_" + cardSuit + ".png";
+                break;
+            case 12:
+                output = "queen_of_" + cardSuit + ".png";
+                break;
+            case 13:
+                output = "king_of_" + cardSuit + ".png";
+                break;
+            case 14:
+                output = "ace_of_" + cardSuit + ".png";
+                break;
+            default:
+                output = rank + "_of_" + cardSuit + ".png";
+                break;
+        }
+        System.out.println(output);
+        cardFace = new ImageIcon(getClass().getResource(output));
     }
-    int getRank(){
+    public int getRank(){
         return rank;
     }
-    void setNumber(int n){
+    public void setNumber(int n){
         rank = n;
     }
-    Suit getCardSuit(){
+    public Suit getCardSuit(){
         return cardSuit;
     }
-    void setCardSuit(Suit s){
+    public void setCardSuit(Suit s){
         cardSuit = s;
     }
 
-    String printCard()
+    public Icon getIcon()
+    {
+        return cardFace;
+    }
+
+    public String printCard()
     {
         String output;
         switch(rank)

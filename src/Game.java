@@ -1,12 +1,34 @@
+import javax.swing.*;
+import java.awt.*;
 import java.util.Scanner;
 import java.util.Vector;
 
-public class Game
+public class Game extends JFrame
 {
     static CardDeck cd = new CardDeck();
     static Card.Suit trumpSuit;
     static Vector<Card> turnCards = new Vector<>();
+    private JPanel innerPanel = new JPanel();
+    private JLabel jackOfClubs;
+    public Game()
+    {
+        super("Durak Game");
+        innerPanel.setLayout(new BorderLayout());
+        Card card = new Card(11, Card.Suit.clubs);
+        //jackOfClubs = new JLabel(cd.deck.firstElement().getIcon());
+        jackOfClubs = new JLabel(card.getIcon());
+
+        innerPanel.add(jackOfClubs, BorderLayout.SOUTH);
+
+        add(innerPanel);
+    }
+
     public static void main(String [] args){
+
+        Game mainGame = new Game();
+        mainGame.setSize(1450, 850);
+        mainGame.setVisible(true);
+        mainGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         int numPlayers = 2;
 

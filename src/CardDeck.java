@@ -17,16 +17,16 @@ public class CardDeck{
         for (int i = 0; i < DECK_SIZE; i++){
             switch(i % 4){
                 case 0:
-                    deck.addElement(new Card(rank, Card.Suit.Clubs));
+                    deck.addElement(new Card(rank, Card.Suit.clubs));
                     break;
                 case 1:
-                    deck.addElement(new Card(rank, Card.Suit.Hearts));
+                    deck.addElement(new Card(rank, Card.Suit.hearts));
                     break;
                 case 2:
-                    deck.addElement(new Card(rank, Card.Suit.Spades));
+                    deck.addElement(new Card(rank, Card.Suit.spades));
                     break;
                 case 3:
-                    deck.addElement(new Card(rank, Card.Suit.Diamonds));
+                    deck.addElement(new Card(rank, Card.Suit.diamonds));
                     rank++;
                     break;
             }
