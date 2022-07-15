@@ -5,28 +5,34 @@ import java.util.Vector;
 
 public class Game extends JFrame
 {
-    static CardDeck cd = new CardDeck();
+    private CardDeck cd = new CardDeck();
     static Card.Suit trumpSuit;
-    static Vector<Card> turnCards = new Vector<>();
+
+    private Vector<Card> turnCards = new Vector<>();
+    private Vector<JLabel> humanHandLabels = new Vector<>();
+    private Vector<JLabel> computerHandLabels = new Vector<>();
     private JPanel innerPanel = new JPanel();
+    private JPanel humamHandPanel = new JPanel();
     private JLabel jackOfClubs;
     public Game()
     {
         super("Durak Game");
         innerPanel.setLayout(new BorderLayout());
         Card card = new Card(11, Card.Suit.clubs);
-        //jackOfClubs = new JLabel(cd.deck.firstElement().getIcon());
-        jackOfClubs = new JLabel(card.getIcon());
 
-        innerPanel.add(jackOfClubs, BorderLayout.SOUTH);
+        //jackOfClubs = new JLabel(card.getIcon());
+        //jackOfClubs = new JLabel(cd.deck.firstElement().getIcon());
+
+        //innerPanel.add(jackOfClubs, BorderLayout.SOUTH);
+        innerPanel.add(humamHandPanel, BorderLayout.SOUTH);
 
         add(innerPanel);
     }
 
     public static void main(String [] args){
-
+        System.out.println("Starting");
         Game mainGame = new Game();
-        mainGame.setSize(1450, 850);
+        mainGame.setSize(1450, 650);
         mainGame.setVisible(true);
         mainGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -35,18 +41,20 @@ public class Game extends JFrame
         HumanPlayer you = new HumanPlayer();
         ComputerPlayer cpu = new ComputerPlayer();
 
-        cd.dealPlayer(you);
-        cd.dealPlayer(cpu);
-        trumpSuit = cd.getTrumpSuit();
+        mainGame.cd.dealPlayer(you);
+        mainGame.cd.dealPlayer(cpu);
+        mainGame.trumpSuit = mainGame.cd.getTrumpSuit();
 
-        turnOrder(you, cpu);
+        mainGame.drawHand(you);
+
+        mainGame.turnOrder(you, cpu);
         System.out.println("Human's turn is " + you.getTurn());
         System.out.println("CPU's turn is " + cpu.getTurn());
 
         // testing with one player and one bot
-        while((you.hand.size() != 0 && cpu.hand.size() != 0) && cd.deck.size() > 0)
+        while((you.hand.size() != 0 && cpu.hand.size() != 0) && mainGame.cd.deck.size() > 0)
         {
-            System.out.println("Cards left in the deck: " + cd.deck.size());
+            System.out.println("Cards left in the deck: " + mainGame.cd.deck.size());
 
             // main game loop, controlled by this boolean
             boolean runAgain;
@@ -58,27 +66,27 @@ public class Game extends JFrame
                 System.out.println("\nThe cpu's hand is as follows.");
                 cpu.printHand();
 
-                System.out.println("\nThe trump suit is " + trumpSuit + "\n");
+                System.out.println("\nThe trump suit is " + mainGame.trumpSuit + "\n");
 
                 if(you.getTurn() == 1)
                 {
-                    runAgain = playerAttackBot(you, cpu);
+                    runAgain = mainGame.playerAttackBot(you, cpu);
                     if(!runAgain)
                     {
                         break;
                     }
 
-                    runAgain = botAttackPlayer(you, cpu);
+                    runAgain = mainGame.botAttackPlayer(you, cpu);
                 }
                 else
                 {
-                    runAgain = botAttackPlayer(you, cpu);
+                    runAgain = mainGame.botAttackPlayer(you, cpu);
                     if(!runAgain)
                     {
                         break;
                     }
 
-                    runAgain = playerAttackBot(you, cpu);
+                    runAgain = mainGame.playerAttackBot(you, cpu);
                 }
             } while(runAgain);
 
@@ -92,14 +100,14 @@ public class Game extends JFrame
                     break;
             }*/
 
-            while(you.hand.size() < 6 && cd.deck.size() > 0)
+            while(you.hand.size() < 6 && mainGame.cd.deck.size() > 0)
             {
-                cd.dealCard(you);
+                mainGame.cd.dealCard(you);
             }
 
-            while(cpu.hand.size() < 6 && cd.deck.size() > 0)
+            while(cpu.hand.size() < 6 && mainGame.cd.deck.size() > 0)
             {
-                cd.dealCard(cpu);
+                mainGame.cd.dealCard(cpu);
             }
         }
 
@@ -112,8 +120,14 @@ public class Game extends JFrame
             System.out.println("cpu is winner");
         }
     }
+    private void drawHand(Player p){
+        for (int i = 0; i < p.hand.size(); i++){
+            humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
+            humamHandPanel.add(humanHandLabels.elementAt(i));
+        }
+    }
 
-    private static void turnOrder(HumanPlayer human, ComputerPlayer computer)
+    private void turnOrder(HumanPlayer human, ComputerPlayer computer)
     {
         Card humanBestCard = new Card(14, trumpSuit),
              cpuBestCard = new Card(14, trumpSuit);
@@ -146,7 +160,7 @@ public class Game extends JFrame
         }
     }
 
-    private static boolean playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
+    private boolean playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
     {
 
         System.out.println("What do you wanna do? Press 0 to pass.");
@@ -174,7 +188,7 @@ public class Game extends JFrame
         return true;
     }
 
-    private static boolean botAttackPlayer(HumanPlayer humanDefender, ComputerPlayer cpuAttacker)
+    private boolean botAttackPlayer(HumanPlayer humanDefender, ComputerPlayer cpuAttacker)
     {
         cpuAttacker.attack(turnCards);
         System.out.println("The CPU (attacker) chose " + turnCards.lastElement().printCard());
@@ -215,7 +229,7 @@ public class Game extends JFrame
         return true;
     }
 
-    private static boolean validMoveCheck(Card attackerCard, Card defenderCard)
+    private boolean validMoveCheck(Card attackerCard, Card defenderCard)
     {
         // TODO: review this. logic is off
         // maybe walk through vector of cards in play

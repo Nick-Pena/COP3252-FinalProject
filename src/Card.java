@@ -3,7 +3,7 @@ import javax.swing.*;
 public class Card {
     private int rank;
     private Suit cardSuit;
-    private Icon cardFace;
+    //private Icon cardFace;
     //private Icon cardBack = new ImageIcon(getClass().getResource("card_back.png"));
 
     public enum Suit {
@@ -18,6 +18,51 @@ public class Card {
         rank = n;
         cardSuit = s;
 
+        String output;
+        /*
+        switch(rank)
+        {
+            case 11:
+                output = "jack_of_" + cardSuit + ".png";
+                break;
+            case 12:
+                output = "queen_of_" + cardSuit + ".png";
+                break;
+            case 13:
+                output = "king_of_" + cardSuit + ".png";
+                break;
+            case 14:
+                output = "ace_of_" + cardSuit + ".png";
+                break;
+            default:
+                output = rank + "_of_" + cardSuit + ".png";
+                break;
+        }
+        //System.out.println(output);
+
+        cardFace = new ImageIcon(getClass().getResource(output));
+        */
+    }
+    public int getRank(){
+        return rank;
+    }
+    public void setNumber(int n){
+        rank = n;
+    }
+    public Suit getCardSuit(){
+        return cardSuit;
+    }
+    public void setCardSuit(Suit s){
+        cardSuit = s;
+    }
+
+    /*public Icon getIcon()
+    {
+        return cardFace;
+    }
+    */
+
+    public Icon getIcon(){
         String output;
         switch(rank)
         {
@@ -37,25 +82,7 @@ public class Card {
                 output = rank + "_of_" + cardSuit + ".png";
                 break;
         }
-        System.out.println(output);
-        cardFace = new ImageIcon(getClass().getResource(output));
-    }
-    public int getRank(){
-        return rank;
-    }
-    public void setNumber(int n){
-        rank = n;
-    }
-    public Suit getCardSuit(){
-        return cardSuit;
-    }
-    public void setCardSuit(Suit s){
-        cardSuit = s;
-    }
-
-    public Icon getIcon()
-    {
-        return cardFace;
+        return new ImageIcon(getClass().getResource(output));
     }
 
     public String printCard()
