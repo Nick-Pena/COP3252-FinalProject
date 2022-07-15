@@ -21,19 +21,46 @@ public class Game
         System.out.println("Human's turn is " + you.getTurn());
         System.out.println("CPU's turn is " + cpu.getTurn());
 
-        System.out.println("The trump suit is " + trumpSuit + "\n");
-
         // testing with one player and one bot
-        int itr = 0;
-        while(you.hand.size() != 0 && cpu.hand.size() != 0)
+        while((you.hand.size() != 0 && cpu.hand.size() != 0) && cd.deck.size() > 0)
         {
-            System.out.println("Your hand is as follows.");
-            you.printHand();
+            System.out.println("Cards left in the deck: " + cd.deck.size());
 
-            System.out.println("\nThe cpu's hand is as follows.");
-            cpu.printHand();
+            // main game loop, controlled by this boolean
+            boolean runAgain;
+            do
+            {
+                System.out.println("\nYour hand is as follows.");
+                you.printHand();
 
-            switch(itr % 2)
+                System.out.println("\nThe cpu's hand is as follows.");
+                cpu.printHand();
+
+                System.out.println("\nThe trump suit is " + trumpSuit + "\n");
+
+                if(you.getTurn() == 1)
+                {
+                    runAgain = playerAttackBot(you, cpu);
+                    if(!runAgain)
+                    {
+                        break;
+                    }
+
+                    runAgain = botAttackPlayer(you, cpu);
+                }
+                else
+                {
+                    runAgain = botAttackPlayer(you, cpu);
+                    if(!runAgain)
+                    {
+                        break;
+                    }
+
+                    runAgain = playerAttackBot(you, cpu);
+                }
+            } while(runAgain);
+
+            /*switch(itr % 2)
             {
                 case 0:
                     playerAttackBot(you, cpu);
@@ -41,9 +68,17 @@ public class Game
                 case 1:
                     botAttackPlayer(you, cpu);
                     break;
+            }*/
+
+            while(you.hand.size() < 6 && cd.deck.size() > 0)
+            {
+                cd.dealCard(you);
             }
 
-            itr++;
+            while(cpu.hand.size() < 6 && cd.deck.size() > 0)
+            {
+                cd.dealCard(cpu);
+            }
         }
 
         if(you.hand.size() == 0)
@@ -75,6 +110,8 @@ public class Game
             }
         }
 
+        // TODO: add turn-based functionality
+        // currently, turns do nothing. player always goes first
         if(humanBestCard.getRank() < cpuBestCard.getRank())
         {
             human.setTurn(1);
@@ -87,13 +124,17 @@ public class Game
         }
     }
 
-    // TODO: rework these functions to use new methods in ComputerPlayer
-    private static void playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
+    private static boolean playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
     {
-        Scanner playerScan = new Scanner(System.in);
 
-        System.out.println("\nWhat card are you gonna use?");
-        Card attackerChoice = humanAttacker.hand.elementAt(playerScan.nextInt() - 1);
+        System.out.println("What do you wanna do? Press 0 to pass.");
+        Scanner playerScan = new Scanner(System.in);
+        int playerChoice = playerScan.nextInt();
+        if(playerChoice == 0)
+        {
+            return false;
+        }
+        Card attackerChoice = humanAttacker.hand.elementAt(playerChoice - 1);
         System.out.println("You chose " + attackerChoice.printCard());
         humanAttacker.playCard(turnCards, attackerChoice);
 
@@ -104,31 +145,61 @@ public class Game
             {
                 cpuDefender.hand.add(turnCards.elementAt(i));
             }
-            return;
+            return false;
         }
 
         System.out.println("The CPU (defender) chose " + turnCards.lastElement().printCard());
+        return true;
     }
 
-    private static void botAttackPlayer(HumanPlayer humanDefender, ComputerPlayer cpuAttacker)
+    private static boolean botAttackPlayer(HumanPlayer humanDefender, ComputerPlayer cpuAttacker)
     {
         cpuAttacker.attack(turnCards);
         System.out.println("The CPU (attacker) chose " + turnCards.lastElement().printCard());
 
-        System.out.println("What do you wanna do?");
+        System.out.println("What do you wanna do? Press 0 to pass.");
         Scanner playerScan = new Scanner(System.in);
-        Card defenderChoice = humanDefender.hand.elementAt(playerScan.nextInt() - 1);
+        int playerChoice = playerScan.nextInt();
+        if(playerChoice == 0)
+        {
+            System.out.println("You chose to pass.");
+            for(int i = 0; i < turnCards.size(); i++)
+            {
+                humanDefender.hand.add(turnCards.elementAt(i));
+            }
+            return false;
+        }
+
+        Card defenderChoice = humanDefender.hand.elementAt(playerChoice - 1);
         while(!validMoveCheck(turnCards.lastElement(), defenderChoice))
         {
             System.out.println("You can't do that");
-            defenderChoice = humanDefender.hand.elementAt(playerScan.nextInt() - 1);
+            playerChoice = playerScan.nextInt();
+            if(playerChoice == 0)
+            {
+                System.out.println("You chose to pass.");
+                for(int i = 0; i < turnCards.size(); i++)
+                {
+                    humanDefender.hand.add(turnCards.elementAt(i));
+                }
+                return false;
+            }
+
+            defenderChoice = humanDefender.hand.elementAt(playerChoice - 1);
         }
         System.out.println("You played " + defenderChoice.printCard());
         humanDefender.playCard(turnCards, defenderChoice);
+
+        return true;
     }
 
     private static boolean validMoveCheck(Card attackerCard, Card defenderCard)
     {
+        // TODO: review this. logic is off
+        // maybe walk through vector of cards in play
+        // and add each rank to a new array?
+        // then check the validity of the play using that
+        // and if the suit matches the current suit
         if(attackerCard.getCardSuit() == defenderCard.getCardSuit()
                 && defenderCard.getRank() > attackerCard.getRank())
         {
