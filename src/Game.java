@@ -7,50 +7,72 @@ public class Game extends JFrame
 {
     private CardDeck cd = new CardDeck();
     static Card.Suit trumpSuit;
-
+    private JLabel trumpCard;
     private Vector<Card> turnCards = new Vector<>();
     private Vector<JLabel> humanHandLabels = new Vector<>();
     private Vector<JLabel> computerHandLabels = new Vector<>();
     private JPanel innerPanel = new JPanel();
-    private JPanel humamHandPanel = new JPanel();
+    private JPanel humanHandPanel = new JPanel();
     private JPanel computerHandPanel = new JPanel();
-    private JLabel jackOfClubs;
+    public JPanel deckWestPanel = new JPanel();
+    public JPanel battlePanel = new JPanel();
+    private JLabel deckCardBack = new JLabel(new ImageIcon(getClass().getResource("card_back.png")));
     public Game()
     {
         super("Durak Game");
         innerPanel.setLayout(new BorderLayout());
-        Card card = new Card(11, Card.Suit.clubs);
 
-        //jackOfClubs = new JLabel(card.getIcon());
-        //jackOfClubs = new JLabel(cd.deck.firstElement().getIcon());
-
-        //innerPanel.add(jackOfClubs, BorderLayout.SOUTH);
-        innerPanel.add(humamHandPanel, BorderLayout.SOUTH);
+        innerPanel.add(humanHandPanel, BorderLayout.SOUTH);
         innerPanel.add(computerHandPanel, BorderLayout.NORTH);
+        innerPanel.add(deckWestPanel, BorderLayout.WEST);
+        innerPanel.add(battlePanel, BorderLayout.CENTER);
 
         add(innerPanel);
     }
 
     public static void main(String [] args){
         System.out.println("Starting");
+
         Game mainGame = new Game();
         mainGame.setSize(1450, 650);
         mainGame.setVisible(true);
         mainGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        int numPlayers = 2;
 
         HumanPlayer you = new HumanPlayer();
         ComputerPlayer cpu = new ComputerPlayer();
 
         mainGame.cd.dealPlayer(you);
         mainGame.cd.dealPlayer(cpu);
+
         trumpSuit = mainGame.cd.getTrumpSuit();
+
+        mainGame.trumpCard = new JLabel(mainGame.cd.deck.firstElement()
+                .getIcon());
+        mainGame.deckWestPanel.add(mainGame.trumpCard);
+        mainGame.deckWestPanel.add(mainGame.deckCardBack);
+        mainGame.deckCardBack.setText("Remaining cards: " + mainGame.cd.deck.size());
+        mainGame.deckWestPanel.revalidate();
+        mainGame.deckWestPanel.repaint();
+
+        cpu.setTurn(1);
+        you.setTurn(2);
+
+        if(cpu.getTurn() == 1)
+        {
+            cpu.attack(mainGame.turnCards);
+            JLabel cardLabel = new JLabel(mainGame.turnCards.firstElement().getIcon());
+            mainGame.battlePanel.add(cardLabel);
+            mainGame.revalidate();
+        }
+        else
+        {
+
+        }
 
         mainGame.drawHand(you);
         mainGame.drawHand(cpu);
 
-        mainGame.turnOrder(you, cpu);
+        //mainGame.turnOrder(you, cpu);
         System.out.println("Human's turn is " + you.getTurn());
         System.out.println("CPU's turn is " + cpu.getTurn());
 
@@ -69,7 +91,7 @@ public class Game extends JFrame
                 System.out.println("\nThe cpu's hand is as follows.");
                 cpu.printHand();
 
-                System.out.println("\nThe trump suit is " + mainGame.trumpSuit + "\n");
+                System.out.println("\nThe trump suit is " + trumpSuit + "\n");
 
                 if(you.getTurn() == 1)
                 {
@@ -93,15 +115,15 @@ public class Game extends JFrame
                 }
             } while(runAgain);
 
-            /*switch(itr % 2)
-            {
-                case 0:
-                    playerAttackBot(you, cpu);
-                    break;
-                case 1:
-                    botAttackPlayer(you, cpu);
-                    break;
-            }*/
+                /*switch(itr % 2)
+                {
+                    case 0:
+                        playerAttackBot(you, cpu);
+                        break;
+                    case 1:
+                        botAttackPlayer(you, cpu);
+                        break;
+                }*/
 
             while(you.hand.size() < 6 && mainGame.cd.deck.size() > 0)
             {
@@ -123,27 +145,30 @@ public class Game extends JFrame
             System.out.println("cpu is winner");
         }
     }
+
     private void drawHand(Player p){
         if (p instanceof HumanPlayer){
             for (int i = 0; i < p.hand.size(); i++){
                 humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
-                humamHandPanel.add(humanHandLabels.elementAt(i));
+                humanHandPanel.add(humanHandLabels.elementAt(i));
             }
+            humanHandPanel.revalidate();
+            humanHandPanel.repaint();
         }
         else if (p instanceof ComputerPlayer){
             for (int i = 0; i < p.hand.size(); i++){
                 computerHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
                 computerHandPanel.add(computerHandLabels.elementAt(i));
             }
+            computerHandPanel.revalidate();
+            computerHandPanel.repaint();
         }
-        humamHandPanel.revalidate();
-        humamHandPanel.repaint();
     }
 
     private void turnOrder(HumanPlayer human, ComputerPlayer computer)
     {
         Card humanBestCard = new Card(14, trumpSuit),
-             cpuBestCard = new Card(14, trumpSuit);
+                cpuBestCard = new Card(14, trumpSuit);
 
         for(int i = 0; i < 6; i++)
         {
