@@ -43,7 +43,7 @@ public class Game extends JFrame
 
         mainGame.cd.dealPlayer(you);
         mainGame.cd.dealPlayer(cpu);
-        mainGame.trumpSuit = mainGame.cd.getTrumpSuit();
+        trumpSuit = mainGame.cd.getTrumpSuit();
 
         mainGame.drawHand(you);
 
@@ -125,6 +125,8 @@ public class Game extends JFrame
             humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
             humamHandPanel.add(humanHandLabels.elementAt(i));
         }
+        humamHandPanel.revalidate();
+        humamHandPanel.repaint();
     }
 
     private void turnOrder(HumanPlayer human, ComputerPlayer computer)
