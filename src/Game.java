@@ -13,6 +13,7 @@ public class Game extends JFrame
     private Vector<JLabel> computerHandLabels = new Vector<>();
     private JPanel innerPanel = new JPanel();
     private JPanel humamHandPanel = new JPanel();
+    private JPanel computerHandPanel = new JPanel();
     private JLabel jackOfClubs;
     public Game()
     {
@@ -25,6 +26,7 @@ public class Game extends JFrame
 
         //innerPanel.add(jackOfClubs, BorderLayout.SOUTH);
         innerPanel.add(humamHandPanel, BorderLayout.SOUTH);
+        innerPanel.add(computerHandPanel, BorderLayout.NORTH);
 
         add(innerPanel);
     }
@@ -46,6 +48,7 @@ public class Game extends JFrame
         trumpSuit = mainGame.cd.getTrumpSuit();
 
         mainGame.drawHand(you);
+        mainGame.drawHand(cpu);
 
         mainGame.turnOrder(you, cpu);
         System.out.println("Human's turn is " + you.getTurn());
@@ -121,9 +124,17 @@ public class Game extends JFrame
         }
     }
     private void drawHand(Player p){
-        for (int i = 0; i < p.hand.size(); i++){
-            humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
-            humamHandPanel.add(humanHandLabels.elementAt(i));
+        if (p instanceof HumanPlayer){
+            for (int i = 0; i < p.hand.size(); i++){
+                humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
+                humamHandPanel.add(humanHandLabels.elementAt(i));
+            }
+        }
+        else if (p instanceof ComputerPlayer){
+            for (int i = 0; i < p.hand.size(); i++){
+                computerHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
+                computerHandPanel.add(computerHandLabels.elementAt(i));
+            }
         }
         humamHandPanel.revalidate();
         humamHandPanel.repaint();
