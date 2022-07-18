@@ -1,5 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -57,7 +60,7 @@ public class Game extends JFrame
         cpu.setTurn(1);
         you.setTurn(2);
 
-        if(cpu.getTurn() == 1)
+        if(cpu.getTurnOrder() == 1)
         {
             cpu.attack(mainGame.turnCards);
             JLabel cardLabel = new JLabel(mainGame.turnCards.firstElement().getIcon());
@@ -73,11 +76,11 @@ public class Game extends JFrame
         mainGame.drawHand(cpu);
 
         //mainGame.turnOrder(you, cpu);
-        System.out.println("Human's turn is " + you.getTurn());
-        System.out.println("CPU's turn is " + cpu.getTurn());
+        System.out.println("Human's turn is " + you.getTurnOrder());
+        System.out.println("CPU's turn is " + cpu.getTurnOrder());
 
         // testing with one player and one bot
-        while((you.hand.size() != 0 && cpu.hand.size() != 0) && mainGame.cd.deck.size() > 0)
+        /*while((you.hand.size() != 0 && cpu.hand.size() != 0) && mainGame.cd.deck.size() > 0)
         {
             System.out.println("Cards left in the deck: " + mainGame.cd.deck.size());
 
@@ -115,7 +118,7 @@ public class Game extends JFrame
                 }
             } while(runAgain);
 
-                /*switch(itr % 2)
+                switch(itr % 2)
                 {
                     case 0:
                         playerAttackBot(you, cpu);
@@ -123,7 +126,7 @@ public class Game extends JFrame
                     case 1:
                         botAttackPlayer(you, cpu);
                         break;
-                }*/
+                }
 
             while(you.hand.size() < 6 && mainGame.cd.deck.size() > 0)
             {
@@ -143,13 +146,31 @@ public class Game extends JFrame
         else
         {
             System.out.println("cpu is winner");
-        }
+        }*/
     }
 
     private void drawHand(Player p){
+
         if (p instanceof HumanPlayer){
+
             for (int i = 0; i < p.hand.size(); i++){
+                final int index = i;
                 humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
+                humanHandLabels.elementAt(i).addMouseListener(
+                        new MouseAdapter()
+                        {
+                            public void mouseClicked(MouseEvent e)
+                            {
+                                // TODO: index out of bounds, wtf?
+                                turnCards.add(p.hand.elementAt(index));
+                                battlePanel.add(humanHandLabels.elementAt(index));
+                                p.hand.removeElementAt(index);
+                                p.hand.trimToSize();
+                                humanHandPanel.remove(humanHandLabels.elementAt(index));
+                                humanHandLabels.trimToSize();
+                                repaint();
+                            }
+                        });
                 humanHandPanel.add(humanHandLabels.elementAt(i));
             }
             humanHandPanel.revalidate();
