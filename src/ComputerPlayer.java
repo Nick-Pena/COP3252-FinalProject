@@ -144,17 +144,4 @@ public class ComputerPlayer extends Player {
         return false;
 
     }
-
-
-    public void sortCardsRank(Vector<Card> vec){
-        for (int i = 0; i < vec.size(); i++){
-            for (int j = 0; j < vec.size() - i - 1; j++){
-                if (vec.elementAt(j).getRank() > vec.elementAt(j + 1).getRank()){
-                    Card temp = vec.elementAt(j);
-                    vec.set(j, vec.elementAt(j + 1));
-                    vec.set(j + 1, temp);
-                }
-            }
-        }
-    }
 }

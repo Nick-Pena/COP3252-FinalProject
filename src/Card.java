@@ -17,31 +17,6 @@ public class Card {
     public Card(int n, Suit s){
         rank = n;
         cardSuit = s;
-
-        String output;
-        /*
-        switch(rank)
-        {
-            case 11:
-                output = "jack_of_" + cardSuit + ".png";
-                break;
-            case 12:
-                output = "queen_of_" + cardSuit + ".png";
-                break;
-            case 13:
-                output = "king_of_" + cardSuit + ".png";
-                break;
-            case 14:
-                output = "ace_of_" + cardSuit + ".png";
-                break;
-            default:
-                output = rank + "_of_" + cardSuit + ".png";
-                break;
-        }
-        //System.out.println(output);
-
-        cardFace = new ImageIcon(getClass().getResource(output));
-        */
     }
     public int getRank(){
         return rank;
@@ -55,12 +30,6 @@ public class Card {
     public void setCardSuit(Suit s){
         cardSuit = s;
     }
-
-    /*public Icon getIcon()
-    {
-        return cardFace;
-    }
-    */
 
     public Icon getIcon(){
         String output;
@@ -82,7 +51,8 @@ public class Card {
                 output = rank + "_of_" + cardSuit + ".png";
                 break;
         }
-        return new ImageIcon(getClass().getResource(output));
+        //System.out.println("Trying to find an image for " + output);
+        return new ImageIcon("./cards/default/" + output);
     }
 
     public String printCard()

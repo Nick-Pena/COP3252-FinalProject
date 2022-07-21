@@ -5,6 +5,9 @@ public class HumanPlayer extends Player {
     HumanPlayer()
     {
         hand = new Vector<>();
+        if (turn == 1){
+            
+        }
     }
 
     public void playCard(Vector<Card> cards, Card playedCard)
