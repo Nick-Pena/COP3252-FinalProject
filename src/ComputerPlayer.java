@@ -26,7 +26,6 @@ public class ComputerPlayer extends Player {
             turnCards.add(lowestAttackCard);
             System.out.println("The CPU (attacker) chose " + lowestAttackCard.printCard());
             hand.removeElementAt(0);
-            return;
         }
     }
 
@@ -142,6 +141,5 @@ public class ComputerPlayer extends Player {
             }
         }
         return false;
-
     }
 }

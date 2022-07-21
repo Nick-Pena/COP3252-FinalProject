@@ -108,21 +108,26 @@ public class Game extends JFrame
         this.add(passButton, c);
     }
 
-    private void playerPass()
-    {
-        // TODO: add passing functionality for the player
-        //  can either pass as an attacker to end the round
-        //  or take the cards as a defender to become the attacker
-        //  maybe just invert booleans for players being attacker/defender
-        //  and call addExtra? might have to think about implementation
-    }
+    public void setUpGameBoard(){
+        trumpCard = new JLabel(cd.deck.firstElement().getIcon());
+        trumpCard.setOpaque(true);
+        trumpCard.setBounds(30, 170,
+                trumpCard.getIcon().getIconWidth(),
+                trumpCard.getIcon().getIconHeight());
+        remainingDeckPanel.add(trumpCard,  JLayeredPane.DEFAULT_LAYER);
 
-    private void refillHands()
-    {
-        // TODO: add refill for when hands are over
-        //  probably loop while hand.size < 7, or while i < 6, either way works
-        //  will use similar logic to the drawHands function to add images to the cards
-        //  and draw new cards. do they need to be drawn in a specific order?
+        deckCardBack.setOpaque(true);
+        deckCardBack.setBounds(30, 250,
+                deckCardBack.getIcon().getIconWidth(),
+                deckCardBack.getIcon().getIconHeight());
+        remainingDeckPanel.add(deckCardBack, JLayeredPane.PALETTE_LAYER);
+
+        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
+        remainingCards.setBounds(45, 370, 100, 100);
+        remainingDeckPanel.add(remainingCards, JLayeredPane.DEFAULT_LAYER);
+
+        remainingDeckPanel.revalidate();
+        remainingDeckPanel.repaint();
     }
 
     private void setUpBattlePanel(Game game){
@@ -251,12 +256,12 @@ public class Game extends JFrame
                 humanHandLabels.elementAt(i).addMouseListener(
                         new MouseAdapter()
                         {
-                            private final Card clickedCard = p.hand.elementAt(index);
-                            private final JLabel clickedLabel = humanHandLabels.elementAt(index);
+                            private final Card thisCard = p.hand.elementAt(index);
+                            private final JLabel thisLabel = humanHandLabels.elementAt(index);
                             public void mouseClicked(MouseEvent e)
                             {
-                                if (validMoveCheck(clickedCard, turnCards)){
-                                    turnCards.add(clickedCard);
+                                if (validMoveCheck(thisCard, turnCards)){
+                                    turnCards.add(thisCard);
                                     if (p.isAttack){
                                         attackCards.elementAt(attackCardPosition).setIcon(turnCards.lastElement().getIcon());
                                         attackCardPosition ++;
@@ -265,13 +270,17 @@ public class Game extends JFrame
                                         defenceCards.elementAt(defenceCardPosition).setIcon(turnCards.lastElement().getIcon());
                                         defenceCardPosition ++;
                                     }
-                                    p.hand.remove(clickedCard);
+                                    p.hand.remove(thisCard);
 
                                     //p.hand.trimToSize();
-                                    humanHandLabels.remove(clickedLabel);
-                                    humanHandPanel.remove(clickedLabel);
+                                    humanHandLabels.remove(thisLabel);
+                                    humanHandPanel.remove(thisLabel);
                                     //humanHandLabels.trimToSize();
                                     repaint();
+                                }
+                                if(p.hand.size() < 4)
+                                {
+                                    refillHand(p);
                                 }
                             }
                         });
@@ -290,26 +299,99 @@ public class Game extends JFrame
         }
     }
 
-    public void setUpGameBoard(){
-        trumpCard = new JLabel(cd.deck.firstElement().getIcon());
-        trumpCard.setOpaque(true);
-        trumpCard.setBounds(30, 170, 
-                            trumpCard.getIcon().getIconWidth(), 
-                            trumpCard.getIcon().getIconHeight());
-        remainingDeckPanel.add(trumpCard,  JLayeredPane.DEFAULT_LAYER);
+    private void refillHand(Player p)
+    {
+        // somewhat figured this out? check on it on thursday
+        // really hoping this works lol
 
-        deckCardBack.setOpaque(true);
-        deckCardBack.setBounds(30, 250,
-                               deckCardBack.getIcon().getIconWidth(),
-                               deckCardBack.getIcon().getIconHeight());     
-        remainingDeckPanel.add(deckCardBack, JLayeredPane.PALETTE_LAYER);
+        // if the player or cpu's hands have less than 6 cards
+        // we draw them up to 6. otherwise we skip them if they have more
+        // maybe need an outer condition to check if the deck has cards? unsure
+        // so far, using last element is probably the best idea since we can't count on
+        // indices to track things
+        if(p instanceof HumanPlayer && p.hand.size() < 6)
+        {
+            for(int i = (6 - p.hand.size()); i < 6; i++)
+            {
+                p.hand.add(cd.deck.lastElement());
+                cd.deck.removeElementAt(cd.deck.size() - 1);
 
-        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
-        remainingCards.setBounds(45, 370, 100, 100);
-        remainingDeckPanel.add(remainingCards, JLayeredPane.DEFAULT_LAYER);
+                final int index = i;
+                humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
+                humanHandLabels.elementAt(i).addMouseListener(
+                        new MouseAdapter()
+                        {
+                            private final Card thisCard = p.hand.elementAt(index);
+                            private final JLabel thisLabel = humanHandLabels.elementAt(index);
+                            public void mouseClicked(MouseEvent e)
+                            {
+                                if (validMoveCheck(thisCard, turnCards)){
+                                    turnCards.add(thisCard);
+                                    if (p.isAttack){
+                                        attackCards.elementAt(attackCardPosition).setIcon(turnCards.lastElement().getIcon());
+                                        attackCardPosition ++;
+                                    }
+                                    else {
+                                        defenceCards.elementAt(defenceCardPosition).setIcon(turnCards.lastElement().getIcon());
+                                        defenceCardPosition ++;
+                                    }
+                                    p.hand.remove(thisCard);
 
-        remainingDeckPanel.revalidate();
-        remainingDeckPanel.repaint();
+                                    //p.hand.trimToSize();
+                                    humanHandLabels.remove(thisLabel);
+                                    humanHandPanel.remove(thisLabel);
+                                    //humanHandLabels.trimToSize();
+                                    repaint();
+                                }
+                            }
+                        });
+                humanHandPanel.add(humanHandLabels.elementAt(i));
+            }
+
+            humanHandPanel.revalidate();
+            humanHandPanel.repaint();
+        }
+        else if(p instanceof ComputerPlayer && p.hand.size() < 6)
+        {
+            for(int i = (6 - p.hand.size()); i < 6;  i++)
+            {
+                p.hand.add(cd.deck.lastElement());
+                cd.deck.removeElementAt(cd.deck.size() - 1);
+                computerHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
+                computerHandPanel.add(computerHandLabels.elementAt(i));
+            }
+
+            computerHandPanel.revalidate();
+            computerHandPanel.repaint();
+        }
+
+        // TODO: add refill for when hands are over
+        //  probably loop while hand.size < 7, or while i < 6, either way works
+        //  will use similar logic to the drawHands function to add images to the cards
+        //  and draw new cards. do they need to be drawn in a specific order?
+    }
+
+    private void playerPass()
+    {
+        // NOTE: you can negate the value of booleans to easily swap the attacker
+        // i.e. if boolean attackerFlag = true
+        // then attackerFlag = !attackerFlag sets it to false
+        // and likewise for false to true
+
+        // so, we could do:
+        // human.isAttack = !human.isAttack
+        // cpu.isAttack = !cpu.isAttack
+        // to swap every time
+
+        // maybe we can use this to alternate the attacker/defender order more easily?
+        // if we choose to implement this way
+        // the turnOrder data member of Player is no longer needed
+
+        // TODO: add passing functionality for the player
+        //  can either pass as an attacker to end the round
+        //  or take the cards as a defender to become the attacker
+        //  maybe just invert booleans for players being attacker/defender
+        //  and call addExtra? might have to think about implementation
     }
 
     public static void main(String [] args){
@@ -420,7 +502,7 @@ public class Game extends JFrame
         }
     }
 
-    // following functions are deprecated, can likely remove
+    // following functions are possibly deprecated, can check on removing them later
 
 /*    private boolean playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
     {
@@ -491,7 +573,7 @@ public class Game extends JFrame
         return true;
     }*/
 
-    // end deprecated functions
+    // end possibly deprecated functions
 
     private boolean validMoveCheck(Card cardToPlay, Vector<Card> turnCards)
     {
