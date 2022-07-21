@@ -1,7 +1,7 @@
 import java.util.Vector;
 
 public class Player {
-    protected int turn;
+    protected int turnOrder;
     protected Vector<Card> hand;
     protected boolean isAttack;
 
@@ -9,14 +9,14 @@ public class Player {
         hand = new Vector<>();
     }
 
-    protected int getTurn()
+    protected int getTurnOrder()
     {
-        return turn;
+        return turnOrder;
     }
 
     protected void setTurn(int _turn)
     {
-        turn = _turn;
+        turnOrder = _turn;
     }
 
     protected void setIsAttack(boolean attack){

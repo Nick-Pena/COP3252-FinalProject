@@ -5,7 +5,7 @@ public class HumanPlayer extends Player {
     HumanPlayer()
     {
         hand = new Vector<>();
-        if (turn == 1){
+        if (turnOrder == 1){
             
         }
     }
