@@ -7,154 +7,153 @@ public class ComputerPlayer extends Player {
         hand = new Vector<>();
     }
 
-    public void attack(Vector<Card> turnCards){
+    public int attack(Vector<Card> turnCards){
+        int index = -1;
         // sort hand
         if (hand.size() > 0){
-            sortCardsRank(hand);
-            Card lowestAttackCard = hand.elementAt(0);
+            Vector<Card> newVec = returnSortedHand(hand);
+            Card lowestAttackCard = newVec.elementAt(0);
 
             // find lowest rank regular card
-            for (int i = 1; i < hand.size(); i++){
-                if (hand.elementAt(i).getCardSuit() != Game.trumpSuit){
-                    lowestAttackCard = hand.elementAt(i);
-                    turnCards.add(lowestAttackCard);
-                    hand.removeElementAt(i);
-                    return;
+            for (int i = 0; i < newVec.size(); i++){
+                if (newVec.elementAt(i).getCardSuit() != Game.trumpSuit){
+                    lowestAttackCard = newVec.elementAt(i);
+                    break;
                 }
             }
-            // if there is no lowest rank regular card, attack with the lowest rank trump card
-            turnCards.add(lowestAttackCard);
-            System.out.println("The CPU (attacker) chose " + lowestAttackCard.printCard());
-            hand.removeElementAt(0);
-            return;
-        }
-    }
 
-    /*public boolean canDefend(Card card){
-        for (int i = 0; i < hand.size(); i++){
-            // if a card is higher with the same suit
-            if (hand.elementAt(i).getRank() > card.getRank() &&
-                hand.elementAt(i).getCardSuit() == card.getCardSuit()){
-                    return true;
+            // finds the index of the lowest rank card in the unsorted hand
+            for (int i = 0; i < hand.size(); i++){
+                if (hand.elementAt(i).getCardSuit() == lowestAttackCard.getCardSuit() &&
+                        hand.elementAt(i).getRank() == lowestAttackCard.getRank()){
+                    index = i;
                 }
-            // if a card is a trump card
-            else if (hand.elementAt(i).getCardSuit() == Game.trumpSuit &&
-                    (card.getCardSuit() != Game.trumpSuit)){
-                        return true;
-                    }
-        }
-        return false;
-    }
-    */
+            }
 
-    public boolean defend(Card card, Vector<Card> turnCards){
-        // find the lowest rank card 
-        sortCardsRank(hand);
-        Card lowestDefendCard = hand.elementAt(0);
+            // add card to the pile and remove from hand
+            turnCards.add(hand.elementAt(index));
+            hand.removeElementAt(index);
+        }
+        return index;
+    }
+
+    public int defend(Card card, Vector<Card> turnCards){
+        int index = -1;
+        boolean isFound = false;
+
+        // find the lowest rank card
+        Vector<Card> newVec = returnSortedHand(hand);
+        Card lowestDefendCard = newVec.elementAt(0);
 
         // find the lowest rank card with the same suit
         // it can be a regular card and a trump card
         for (int i = 0; i < hand.size(); i++){
-            if (hand.elementAt(i).getCardSuit() == card.getCardSuit()){
-                if (hand.elementAt(i).getRank() > card.getRank()){
-                    lowestDefendCard = hand.elementAt(i);
-                    turnCards.add(lowestDefendCard);
-                    hand.removeElementAt(i);
-                    return true;
+            if (newVec.elementAt(i).getCardSuit() == card.getCardSuit()){
+                if (newVec.elementAt(i).getRank() > card.getRank()){
+                    lowestDefendCard = newVec.elementAt(i);
+                    isFound = true;
+                    break;
                 }
             }
         }
         // if the attacker card is not trump
-        if (card.getCardSuit() != Game.trumpSuit){
-            // find a lowest rank trump suit
-            for (int i = 0; i < hand.size(); i ++){
-                if (hand.elementAt(i).getCardSuit() == Game.trumpSuit){
-                    lowestDefendCard = hand.elementAt(i);
-                    turnCards.add(lowestDefendCard);
-                    hand.removeElementAt(i);
-                    return true;
+        if (!isFound){
+            if (card.getCardSuit() != Game.trumpSuit){
+                // find a lowest rank trump suit
+                for (int i = 0; i < newVec.size(); i ++){
+                    if (newVec.elementAt(i).getCardSuit() == Game.trumpSuit){
+                        lowestDefendCard = newVec.elementAt(i);
+                        isFound = true;
+                        break;
+                    }
                 }
             }
         }
-        return false;
+
+        // finds the index of the lowest rank card in the unsorted hand
+        if (isFound){
+            for (int i = 0; i < hand.size(); i++){
+                if (hand.elementAt(i).getCardSuit() == lowestDefendCard.getCardSuit() &&
+                        hand.elementAt(i).getRank() == lowestDefendCard.getRank()){
+
+                    index = i;
+                }
+            }
+
+            // add card to the pile and remove from hand
+            turnCards.add(hand.elementAt(index));
+            hand.removeElementAt(index);
+        }
+        return index;
     }
 
-    /*public boolean isExtraAttack(Vector<Card> turnCards){
-        for (int i = 0; i < turnCards.size(); i++){
-            for (int j = 0; j < hand.size(); j++){
-                if (turnCards.elementAt(i).getRank() == hand.elementAt(j).getRank()){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }*/
-
-    public boolean extraAttack(Vector<Card> turnCards, Vector<Card> opponentHand, CardDeck cd){
+    public int addExtraAttackCards(Vector<Card> turnCards, Vector<Card> opponentHand, CardDeck cd){
+        int index = -1;
         if (opponentHand.size() > 0){
             // sort turn cards
-            sortCardsRank(turnCards);
-            sortCardsRank(hand);
-            System.out.println("The hand before: ");
-            for (int i = 0; i < hand.size(); i++){
-                System.out.println(hand.elementAt(i).getRank() + " " + hand.elementAt(i).getCardSuit());
-            }
-            System.out.println("The turn deck before: ");
-            for (int i = 0; i < turnCards.size(); i++){
-                System.out.println(turnCards.elementAt(i).getRank() + " " + turnCards.elementAt(i).getCardSuit());
-            }
+            boolean isFound = false;
+            Vector<Card> sortedTurnCards = returnSortedHand(turnCards);
+            Vector<Card> sortedHand = returnSortedHand(hand);
+
+            Card cardToReturn = new Card();
+
+
             if (cd.deck.size() > 4){
-                // add a card that is not a trump card and its rank lower than 11 (Jack)
-                for (int i = 0; i < turnCards.size(); i++){
-                    for (int j = 0; j < hand.size(); j++){
-                        if (turnCards.elementAt(i).getRank() == hand.elementAt(j).getRank()){
-                            if (hand.elementAt(j).getCardSuit() != Game.trumpSuit &&
-                                    hand.elementAt(j).getRank() < 11){
-                                turnCards.add(hand.elementAt(j));
-                                return true;
+                // find a card that is not a trump card and its rank lower than 11 (Jack)
+                for (int i = 0; i < sortedTurnCards.size(); i++){
+                    for (int j = 0; j < sortedHand.size(); j++){
+                        if (sortedTurnCards.elementAt(i).getRank() == sortedHand.elementAt(j).getRank()){
+                            if (sortedHand.elementAt(j).getCardSuit() != Game.trumpSuit &&
+                                    sortedHand.elementAt(j).getRank() < 11){
+                                cardToReturn = sortedHand.elementAt(j);
+                                isFound = true;
+                                break;
                             }
                         }
                     }
                 }
             }
             else {
-                // add a card if its rank higher than 11 (Jack), still not trump
-                for (int i = 0; i < turnCards.size(); i++){
-                    for (int j = 0; j < hand.size(); j++){
-                        if (turnCards.elementAt(i).getRank() == hand.elementAt(j).getRank()){
-                            if (hand.elementAt(j).getCardSuit() != Game.trumpSuit){
-                                turnCards.add(hand.elementAt(j));
-                                return true;
+                // find a card if its rank higher than 11 (Jack), still not trump
+                for (int i = 0; i < sortedTurnCards.size(); i++){
+                    for (int j = 0; j < sortedHand.size(); j++){
+                        if (sortedTurnCards.elementAt(i).getRank() == sortedHand.elementAt(j).getRank()){
+                            if (sortedHand.elementAt(j).getCardSuit() != Game.trumpSuit){
+                                cardToReturn = sortedHand.elementAt(j);
+                                isFound = true;
+                                break;
                             }
                         }
                     }
                 }
-
-                // add a card even if its a trump card
-                for (int i = 0; i < turnCards.size(); i++){
-                    for (int j = 0; j < hand.size(); j++){
-                        if (turnCards.elementAt(i).getRank() == hand.elementAt(j).getRank()){
-                            turnCards.add(hand.elementAt(j));
-                            return true;
+                if (!isFound){
+                    // find a card even if it is a trump card
+                    for (int i = 0; i < sortedTurnCards.size(); i++){
+                        for (int j = 0; j < sortedHand.size(); j++){
+                            if (sortedTurnCards.elementAt(i).getRank() == sortedHand.elementAt(j).getRank()){
+                                cardToReturn = sortedHand.elementAt(j);
+                                isFound = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
-        }
-        return false;
 
-    }
+            // finds the index of the lowest rank card in the unsorted hand
+            if (isFound){
+                for (int i = 0; i < hand.size(); i++){
+                    if (hand.elementAt(i).getCardSuit() == cardToReturn.getCardSuit() &&
+                            hand.elementAt(i).getRank() == cardToReturn.getRank()){
 
-
-    public void sortCardsRank(Vector<Card> vec){
-        for (int i = 0; i < vec.size(); i++){
-            for (int j = 0; j < vec.size() - i - 1; j++){
-                if (vec.elementAt(j).getRank() > vec.elementAt(j + 1).getRank()){
-                    Card temp = vec.elementAt(j);
-                    vec.set(j, vec.elementAt(j + 1));
-                    vec.set(j + 1, temp);
+                        index = i;
+                    }
                 }
+                // add card to the pile and remove from hand
+                turnCards.add(hand.elementAt(index));
+                hand.removeElementAt(index);
             }
         }
+        return index;
     }
 }

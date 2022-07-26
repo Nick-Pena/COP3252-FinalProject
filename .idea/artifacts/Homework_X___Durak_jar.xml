@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Homework X - Durak:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Homework_X___Durak_jar</output-path>
+    <root id="archive" name="Homework X - Durak.jar">
+      <element id="module-output" name="Homework X - Durak" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/Card.java" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/CardDeck.java" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/ComputerPlayer.java" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/Game.java" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/HumanPlayer.java" />
+      <element id="file-copy" path="$PROJECT_DIR$/src/Player.java" />
+    </root>
+  </artifact>
+</component>

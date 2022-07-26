@@ -1,196 +1,689 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.Scanner;
 import java.util.Vector;
+import java.awt.event.*;
 
 public class Game extends JFrame
 {
+    // players
+    private static HumanPlayer human = new HumanPlayer();
+    private static ComputerPlayer cpu = new ComputerPlayer();
+
+    // card deck and trump suit
     private CardDeck cd = new CardDeck();
     static Card.Suit trumpSuit;
+
+    // trump card's label
     private JLabel trumpCard;
+
+    //cards currently in play
     private Vector<Card> turnCards = new Vector<>();
+
+    // players hands as labels
     private Vector<JLabel> humanHandLabels = new Vector<>();
     private Vector<JLabel> computerHandLabels = new Vector<>();
-    private JPanel innerPanel = new JPanel();
-    private JPanel humanHandPanel = new JPanel();
+
+    // visual representation of cards currently in play
+    private Vector<JLabel> attackCards = new Vector<>(6);
+    private Vector<JLabel> defenceCards = new Vector<>(6);
+
+    // iterators for the above
+    private int attackCardPosition = 0;
+    private int defenceCardPosition = 0;
+
+    private JMenuBar frameBar = new JMenuBar();
+
+    // main container for currently played cards
+    private JLayeredPane battlePanel = new JLayeredPane();
+
+    // panels for players' cards
     private JPanel computerHandPanel = new JPanel();
-    public JPanel deckWestPanel = new JPanel();
-    public JPanel battlePanel = new JPanel();
-    private JLabel deckCardBack = new JLabel(new ImageIcon(getClass().getResource("card_back.png")));
-    public Game()
-    {
-        super("Durak Game");
-        innerPanel.setLayout(new BorderLayout());
+    private JPanel humanHandPanel = new JPanel();
 
-        innerPanel.add(humanHandPanel, BorderLayout.SOUTH);
-        innerPanel.add(computerHandPanel, BorderLayout.NORTH);
-        innerPanel.add(deckWestPanel, BorderLayout.WEST);
-        innerPanel.add(battlePanel, BorderLayout.CENTER);
+    // path to card icon resources
+    private String cardBackPath = "/resources/card_backs/default.png";
+    private String deckCardBackPath = "/resources/card_backs/default_rot.png";
 
-        add(innerPanel);
-    }
+    // labels for card backs
+    private JLabel defaultCardBack = new JLabel(new ImageIcon(this.getClass().getResource(cardBackPath)));
+    private JLabel deckCardBack = new JLabel(new ImageIcon(this.getClass().getResource(deckCardBackPath)));
+
+    // text showing number of remaining cards in the deck
+    private JLabel remainingCards = new JLabel();
 
     public static void main(String [] args){
-        System.out.println("Starting");
 
         Game mainGame = new Game();
-        mainGame.setSize(1450, 650);
-        mainGame.setVisible(true);
-        mainGame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        HumanPlayer you = new HumanPlayer();
-        ComputerPlayer cpu = new ComputerPlayer();
-
-        mainGame.cd.dealPlayer(you);
-        mainGame.cd.dealPlayer(cpu);
-
-        trumpSuit = mainGame.cd.getTrumpSuit();
-
-        mainGame.trumpCard = new JLabel(mainGame.cd.deck.firstElement()
-                .getIcon());
-        mainGame.deckWestPanel.add(mainGame.trumpCard);
-        mainGame.deckWestPanel.add(mainGame.deckCardBack);
-        mainGame.deckCardBack.setText("Remaining cards: " + mainGame.cd.deck.size());
-        mainGame.deckWestPanel.revalidate();
-        mainGame.deckWestPanel.repaint();
-
-        cpu.setTurn(1);
-        you.setTurn(2);
-
-        if(cpu.getTurnOrder() == 1)
+        // if cpu is attacking first, force it to attack
+        if(cpu.isOffense)
         {
-            cpu.attack(mainGame.turnCards);
-            JLabel cardLabel = new JLabel(mainGame.turnCards.firstElement().getIcon());
-            mainGame.battlePanel.add(cardLabel);
-            mainGame.revalidate();
+            mainGame.computerMove();
         }
-        else
-        {
-
-        }
-
-        mainGame.drawHand(you);
-        mainGame.drawHand(cpu);
-
-        //mainGame.turnOrder(you, cpu);
-        System.out.println("Human's turn is " + you.getTurnOrder());
-        System.out.println("CPU's turn is " + cpu.getTurnOrder());
-
-        // testing with one player and one bot
-        /*while((you.hand.size() != 0 && cpu.hand.size() != 0) && mainGame.cd.deck.size() > 0)
-        {
-            System.out.println("Cards left in the deck: " + mainGame.cd.deck.size());
-
-            // main game loop, controlled by this boolean
-            boolean runAgain;
-            do
-            {
-                System.out.println("\nYour hand is as follows.");
-                you.printHand();
-
-                System.out.println("\nThe cpu's hand is as follows.");
-                cpu.printHand();
-
-                System.out.println("\nThe trump suit is " + trumpSuit + "\n");
-
-                if(you.getTurn() == 1)
-                {
-                    runAgain = mainGame.playerAttackBot(you, cpu);
-                    if(!runAgain)
-                    {
-                        break;
-                    }
-
-                    runAgain = mainGame.botAttackPlayer(you, cpu);
-                }
-                else
-                {
-                    runAgain = mainGame.botAttackPlayer(you, cpu);
-                    if(!runAgain)
-                    {
-                        break;
-                    }
-
-                    runAgain = mainGame.playerAttackBot(you, cpu);
-                }
-            } while(runAgain);
-
-                switch(itr % 2)
-                {
-                    case 0:
-                        playerAttackBot(you, cpu);
-                        break;
-                    case 1:
-                        botAttackPlayer(you, cpu);
-                        break;
-                }
-
-            while(you.hand.size() < 6 && mainGame.cd.deck.size() > 0)
-            {
-                mainGame.cd.dealCard(you);
-            }
-
-            while(cpu.hand.size() < 6 && mainGame.cd.deck.size() > 0)
-            {
-                mainGame.cd.dealCard(cpu);
-            }
-        }
-
-        if(you.hand.size() == 0)
-        {
-            System.out.println("you are winner");
-        }
-        else
-        {
-            System.out.println("cpu is winner");
-        }*/
     }
 
-    private void drawHand(Player p){
+    public Game()
+    {
+        // setting up the main game frame
+        super("Durak Game");
+        this.setSize(900, 650);
+        this.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        this.setUndecorated(false);
+        this.setVisible(true);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // setting up panels in game
+        computerHandPanel.setLayout(new FlowLayout());
+        computerHandPanel.setBackground(Color.GRAY);
+
+        humanHandPanel.setLayout(new FlowLayout());
+        humanHandPanel.setBackground(Color.GRAY);
+
+        battlePanel.setOpaque(true);
+        battlePanel.setBackground(Color.LIGHT_GRAY);
+
+        // deal players initial cards and display them
+        drawPlayerHands();
+
+        // get trump suit after cards are dealt
+        trumpSuit = cd.getTrumpSuit();
+
+        // find which player goes first
+        getTurnOrder();
+
+        this.setUpGameBoard();
+        this.setUpMenuBar();
+
+        // add panels to the main game frame
+        this.add(computerHandPanel, BorderLayout.NORTH);
+        this.add(humanHandPanel, BorderLayout.SOUTH);
+        this.getContentPane().add(battlePanel, BorderLayout.CENTER);
+    }
+
+    public void setUpMenuBar()
+    {
+        // new button group for backgrounds
+        ButtonGroup buttons = new ButtonGroup();
+        JMenu backgroundMenu = new JMenu("Background");
+        backgroundMenu.setMnemonic(KeyEvent.VK_B);
+
+        // backgrounds are flags, currently there are 10
+
+        // initialize buttons, add listeners,
+        // add them to their group, then add to the background menu
+        JRadioButtonMenuItem defaultFlag = new JRadioButtonMenuItem("Default", true);
+        addFlagListeners(defaultFlag, Color.GRAY, Color.LIGHT_GRAY, Color.GRAY);
+        buttons.add(defaultFlag);
+        backgroundMenu.add(defaultFlag);
+        JRadioButtonMenuItem germanyFlag = new JRadioButtonMenuItem("Germany");
+        addFlagListeners(germanyFlag, Color.BLACK, Color.RED, Color.YELLOW);
+        buttons.add(germanyFlag);
+        backgroundMenu.add(germanyFlag);
+        JRadioButtonMenuItem estoniaFlag = new JRadioButtonMenuItem("Estonia");
+        addFlagListeners(estoniaFlag, Color.CYAN, Color.BLACK, Color.WHITE);
+        buttons.add(estoniaFlag);
+        backgroundMenu.add(estoniaFlag);
+        JRadioButtonMenuItem netherlandsFlag = new JRadioButtonMenuItem("Netherlands");
+        addFlagListeners(netherlandsFlag, Color.RED, Color.WHITE, Color.BLUE);
+        buttons.add(netherlandsFlag);
+        backgroundMenu.add(netherlandsFlag);
+        JRadioButtonMenuItem colombiaFlag = new JRadioButtonMenuItem("Colombia");
+        addFlagListeners(colombiaFlag, Color.YELLOW, Color.BLUE, Color.RED);
+        buttons.add(colombiaFlag);
+        backgroundMenu.add(colombiaFlag);
+        JRadioButtonMenuItem austriaFlag = new JRadioButtonMenuItem("Austria");
+        addFlagListeners(austriaFlag, Color.BLACK, Color.RED, Color.YELLOW);
+        buttons.add(austriaFlag);
+        backgroundMenu.add(austriaFlag);
+        JRadioButtonMenuItem luxembourgFlag = new JRadioButtonMenuItem("Luxembourg");
+        addFlagListeners(luxembourgFlag, Color.RED, Color.WHITE, Color.CYAN);
+        buttons.add(luxembourgFlag);
+        backgroundMenu.add(luxembourgFlag);
+        JRadioButtonMenuItem hungaryFlag = new JRadioButtonMenuItem("Hungary");
+        addFlagListeners(hungaryFlag, Color.RED, Color.WHITE, Color.GREEN);
+        buttons.add(hungaryFlag);
+        backgroundMenu.add(hungaryFlag);
+        JRadioButtonMenuItem armeniaFlag = new JRadioButtonMenuItem("Armenia");
+        addFlagListeners(armeniaFlag, Color.RED, Color.BLUE, Color.ORANGE);
+        buttons.add(armeniaFlag);
+        backgroundMenu.add(armeniaFlag);
+        JRadioButtonMenuItem ossetiaFlag = new JRadioButtonMenuItem("Ossetia");
+        addFlagListeners(ossetiaFlag, Color.WHITE, Color.RED, Color.YELLOW);
+        buttons.add(ossetiaFlag);
+        backgroundMenu.add(ossetiaFlag);
+        JRadioButtonMenuItem komiFlag = new JRadioButtonMenuItem("Komi");
+        addFlagListeners(komiFlag, Color.BLUE, Color.GREEN, Color.WHITE);
+        buttons.add(komiFlag);
+        backgroundMenu.add(komiFlag);
+        JRadioButtonMenuItem elSalvadorFlag = new JRadioButtonMenuItem("El Salvador");
+        addFlagListeners(elSalvadorFlag, Color.BLUE, Color.WHITE, Color.BLUE);
+        buttons.add(elSalvadorFlag);
+        backgroundMenu.add(elSalvadorFlag);
+
+
+        // new button group for card backs
+        ButtonGroup cardBackGroup = new ButtonGroup();
+        JMenu cardBackMenu = new JMenu("Card Backs");
+        cardBackMenu.setMnemonic(KeyEvent.VK_C);
+
+        // initialize buttons, add listeners,
+        // add them to their group, then add to the card back menu
+        JRadioButtonMenuItem defaultBack = new JRadioButtonMenuItem("Default", true);
+        addCardBackListeners(defaultBack, "default");
+        cardBackGroup.add(defaultBack);
+        cardBackMenu.add(defaultBack);
+        JRadioButtonMenuItem rabbitBack = new JRadioButtonMenuItem("Rabbit");
+        addCardBackListeners(rabbitBack, "rabbit");
+        cardBackMenu.add(rabbitBack);
+        cardBackGroup.add(rabbitBack);
+        JRadioButtonMenuItem greenBack = new JRadioButtonMenuItem("Green");
+        addCardBackListeners(greenBack, "green");
+        cardBackMenu.add(greenBack);
+        cardBackGroup.add(greenBack);
+        JRadioButtonMenuItem strangerBack = new JRadioButtonMenuItem("Stranger");
+        addCardBackListeners(strangerBack, "stranger");
+        cardBackMenu.add(strangerBack);
+        cardBackGroup.add(strangerBack);
+
+        frameBar.add(cardBackMenu);
+        frameBar.add(backgroundMenu);
+
+        setJMenuBar(frameBar);
+    }
+
+    public void addFlagListeners(JRadioButtonMenuItem flag, Color c1, Color c2, Color c3)
+    {
+        flag.addActionListener(new ActionListener() {
+
+            private Color color1 = c1, color2 = c2, color3 = c3;
+            public void actionPerformed(ActionEvent e) {
+                computerHandPanel.setBackground(color1);
+                battlePanel.setBackground(color2);
+                humanHandPanel.setBackground(color3);
+
+                revalidate();
+                repaint();
+            }
+        });
+    }
+
+    public void addCardBackListeners(JRadioButtonMenuItem cardBack, String name)
+    {
+        cardBack.addActionListener(new ActionListener() {
+            private String backName = name;
+            public void actionPerformed(ActionEvent e) {
+                deckCardBackPath = "/resources/card_backs/" + backName + "_rot.png";
+                cardBackPath = "/resources/card_backs/" + backName + ".png";
+
+                deckCardBack.setIcon(new ImageIcon(this.getClass().getResource(deckCardBackPath)));
+                defaultCardBack.setIcon(new ImageIcon(this.getClass().getResource(cardBackPath)));
+
+                for(JLabel cardLabel : computerHandLabels)
+                {
+                    cardLabel.setIcon(defaultCardBack.getIcon());
+                }
+
+                revalidate();
+                repaint();
+            }
+        });
+    }
+
+    public void setUpGameBoard(){
+        int width, height;
+
+        // displays trump card
+        trumpCard = new JLabel(cd.deck.firstElement().getIcon());
+        trumpCard.setOpaque(true);
+        trumpCard.setBounds(50, 50,
+                trumpCard.getIcon().getIconWidth(),
+                trumpCard.getIcon().getIconHeight());
+        battlePanel.add(trumpCard,  JLayeredPane.DEFAULT_LAYER);
+
+        // displays the deck as a single card back
+        deckCardBack.setOpaque(true);
+        deckCardBack.setBounds(30, 100,
+                deckCardBack.getIcon().getIconWidth(),
+                deckCardBack.getIcon().getIconHeight());
+        battlePanel.add(deckCardBack, JLayeredPane.PALETTE_LAYER);
+
+        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
+        remainingCards.setBounds(70, 170, 100, 100);
+        battlePanel.add(remainingCards, JLayeredPane.DEFAULT_LAYER);
+
+        JButton passButton = new JButton("Pass");
+        passButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if(turnCards.size() > 0)
+                {
+                    playerPass();
+                }
+            }
+        });
+        passButton.setOpaque(true);
+        passButton.setBounds(50, 250, 100, 30);
+        battlePanel.add(passButton, JLayeredPane.DEFAULT_LAYER);
+
+        height = 50;
+        width = 530;
+        int cardWidth = 100;
+        int cardHeight = 145;
+
+        // initializes attack card positions in battlePanel
+        for (int i = 0; i < 6; i ++){
+            attackCards.add(new JLabel());
+
+            switch (i) {
+                case 0 -> attackCards.elementAt(i).setBounds(width, height, cardWidth, cardHeight);
+                case 1 -> attackCards.elementAt(i).setBounds(width + 120, height, cardWidth, cardHeight);
+                case 2 -> attackCards.elementAt(i).setBounds(width - 120, height, cardWidth, cardHeight);
+                case 3 -> attackCards.elementAt(i).setBounds(width + 240, height, cardWidth, cardHeight);
+                case 4 -> attackCards.elementAt(i).setBounds(width - 240, height, cardWidth, cardHeight);
+                case 5 -> attackCards.elementAt(i).setBounds(width + 360, height, cardWidth, cardHeight);
+            }
+
+            battlePanel.add(attackCards.elementAt(i), JLayeredPane.DEFAULT_LAYER);
+        }
+
+        height = 110;
+
+        // initializes defense card positions in battlePanel
+        for (int i = 0; i < 6; i ++){
+            defenceCards.add(new JLabel());
+
+            switch (i) {
+                case 0 -> defenceCards.elementAt(i).setBounds(width, height, cardWidth, cardHeight);
+                case 1 -> defenceCards.elementAt(i).setBounds(width + 120, height, cardWidth, cardHeight);
+                case 2 -> defenceCards.elementAt(i).setBounds(width - 120, height, cardWidth, cardHeight);
+                case 3 -> defenceCards.elementAt(i).setBounds(width + 240, height, cardWidth, cardHeight);
+                case 4 -> defenceCards.elementAt(i).setBounds(width - 240, height, cardWidth, cardHeight);
+                case 5 -> defenceCards.elementAt(i).setBounds(width + 360, height, cardWidth, cardHeight);
+            }
+
+            battlePanel.add(defenceCards.elementAt(i), JLayeredPane.POPUP_LAYER);
+        }
+    }
+
+    private void drawPlayerHands(){
+
+        // each player should start with 6 cards
+        // the human player has MouseListeners on each of their cards
+        // the computer player does not have any listeners
+
+        // take last card from the deck
+        // then and add it to the player's hand
+        // alternating each card draw
+        for(int i = 0; i < 12; i++)
+        {
+            if(i % 2 == 0)
+            {
+                human.hand.add(cd.deck.lastElement());
+                cd.deck.removeElementAt(cd.deck.size() - 1);
+
+                humanHandLabels.add(new JLabel(human.hand.lastElement().getIcon()));
+
+                initHumanListeners(human.hand.lastElement(), humanHandLabels.lastElement());
+
+                humanHandPanel.add(humanHandLabels.lastElement());
+            }
+            else
+            {
+                cpu.hand.add(cd.deck.lastElement());
+                cd.deck.removeElementAt(cd.deck.size() - 1);
+
+                computerHandLabels.add(new JLabel(defaultCardBack.getIcon()));
+                computerHandPanel.add(computerHandLabels.lastElement());
+            }
+        }
+
+        humanHandPanel.revalidate();
+        humanHandPanel.repaint();
+
+        computerHandPanel.revalidate();
+        computerHandPanel.repaint();
+    }
+
+    private void refillHand(Player p)
+    {
+        // if the player or cpu's hands have less than 6 cards
+        // we draw them up to 6. otherwise we skip them if they have more
+
+        if(cd.deck.size() > 0)
+        {
+            if(p instanceof HumanPlayer && p.hand.size() < 6)
+            {
+                for(int i = p.hand.size(); i < 6; i++)
+                {
+                    if(cd.deck.size() == 0)
+                    {
+                        break;
+                    }
+                    p.hand.add(cd.deck.lastElement());
+                    cd.deck.removeElementAt(cd.deck.size() - 1);
+
+                    humanHandLabels.add(new JLabel(p.hand.lastElement().getIcon()));
+
+                    initHumanListeners(p.hand.lastElement(), humanHandLabels.lastElement());
+
+                    humanHandPanel.add(humanHandLabels.lastElement());
+                }
+
+                humanHandPanel.revalidate();
+                humanHandPanel.repaint();
+            }
+            else if(p instanceof ComputerPlayer && p.hand.size() < 6)
+            {
+                for(int i = p.hand.size(); i < 6;  i++)
+                {
+                    if(cd.deck.size() == 0)
+                    {
+                        break;
+                    }
+                    p.hand.add(cd.deck.lastElement());
+                    cd.deck.removeElementAt(cd.deck.size() - 1);
+                    computerHandLabels.add(i, new JLabel(defaultCardBack.getIcon()));
+                    computerHandPanel.add(computerHandLabels.lastElement());
+                }
+
+                computerHandPanel.revalidate();
+                computerHandPanel.repaint();
+            }
+        }
+        // checks if we need to remove the deck's label
+        else if(cd.deck.size() == 1)
+        {
+            battlePanel.remove(deckCardBack);
+        }
+        // checks if we need to remove the trump card's label
+        else
+        {
+            if(deckCardBack != null)
+            {
+                battlePanel.remove(deckCardBack);
+            }
+            battlePanel.remove(trumpCard);
+        }
+    }
+
+    private void takeTurnCards(Player p)
+    {
+        // if either player can't beat the attack
+        // or if they pass as a defender
+        // then have the defending player take all cards
+        // that are currently in play
 
         if (p instanceof HumanPlayer){
 
-            for (int i = 0; i < p.hand.size(); i++){
-                final int index = i;
-                humanHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
-                humanHandLabels.elementAt(i).addMouseListener(
-                        new MouseAdapter()
-                        {
-                            public void mouseClicked(MouseEvent e)
-                            {
-                                // TODO: index out of bounds, wtf?
-                                turnCards.add(p.hand.elementAt(index));
-                                battlePanel.add(humanHandLabels.elementAt(index));
-                                p.hand.removeElementAt(index);
-                                p.hand.trimToSize();
-                                humanHandPanel.remove(humanHandLabels.elementAt(index));
-                                humanHandLabels.trimToSize();
-                                repaint();
-                            }
-                        });
-                humanHandPanel.add(humanHandLabels.elementAt(i));
+            while(!turnCards.isEmpty()){
+                p.hand.add(turnCards.lastElement());
+                turnCards.removeElementAt(turnCards.size() - 1);
+
+                humanHandLabels.add(new JLabel(p.hand.lastElement().getIcon()));
+
+                initHumanListeners(p.hand.lastElement(), humanHandLabels.lastElement());
+
+                humanHandPanel.add(humanHandLabels.lastElement());
             }
+
             humanHandPanel.revalidate();
             humanHandPanel.repaint();
         }
         else if (p instanceof ComputerPlayer){
-            for (int i = 0; i < p.hand.size(); i++){
-                computerHandLabels.add(i, new JLabel(p.hand.elementAt(i).getIcon()));
-                computerHandPanel.add(computerHandLabels.elementAt(i));
+            while(!turnCards.isEmpty()){
+                p.hand.add(turnCards.lastElement());
+                turnCards.removeElementAt(turnCards.size() - 1);
+
+                computerHandLabels.add(new JLabel(defaultCardBack.getIcon()));
+                computerHandPanel.add(computerHandLabels.lastElement());
             }
             computerHandPanel.revalidate();
             computerHandPanel.repaint();
         }
     }
 
-    private void turnOrder(HumanPlayer human, ComputerPlayer computer)
+    private void initHumanListeners(Card _thisCard, JLabel _thisLabel)
+    {
+        humanHandLabels.lastElement().addMouseListener(new MouseAdapter() {
+            // store each label's matching card
+            // and itself inside their own listener
+            // for later use
+            private final Card thisCard = _thisCard;
+            private final JLabel thisLabel = _thisLabel;
+            public void mouseClicked(MouseEvent e)
+            {
+                if(human.isAttack)
+                {
+                    if (validMoveCheck(thisCard, turnCards)){
+
+                        winningCheck();
+
+                        turnCards.add(thisCard);
+
+                        // adds the card the human played to
+                        // its respective position on battlePanel
+                        if (human.isOffense){
+                            attackCards.elementAt(attackCardPosition).setIcon(turnCards.lastElement().getIcon());
+                            attackCardPosition ++;
+                        }
+                        else {
+                            defenceCards.elementAt(defenceCardPosition).setIcon(turnCards.lastElement().getIcon());
+                            defenceCardPosition ++;
+                        }
+                        human.hand.remove(thisCard);
+
+                        humanHandLabels.remove(thisLabel);
+                        humanHandPanel.remove(thisLabel);
+
+                        human.isAttack = false;
+                        cpu.isAttack = true;
+
+                        // after our move, we tell the computer to play a card
+                        computerMove();
+
+                        winningCheck();
+                    }
+                }
+
+                repaint();
+                revalidate();
+            }
+        });
+    }
+
+    private void clearTurnLabels()
+    {
+        for(JLabel label : attackCards)
+        {
+            label.setIcon(null);
+        }
+
+        attackCardPosition = 0;
+
+        for(JLabel label : defenceCards)
+        {
+            label.setIcon(null);
+        }
+
+        defenceCardPosition = 0;
+    }
+    private void playerPass()
+    {
+        clearTurnLabels();
+
+        // if the human passes as offense, both players draw cards up to 6 (if possible)
+        // if the human passes as defense, they must take the cards currently in play
+        if(human.isOffense)
+        {
+            refillHand(human);
+            refillHand(cpu);
+
+            turnCards.removeAllElements();
+        }
+        else
+        {
+            takeTurnCards(human);
+            refillHand(cpu);
+        }
+
+        // swap the human player and computer player's roles
+        human.isAttack = false;
+        human.isOffense = false;
+
+        cpu.isAttack = true;
+        cpu.isOffense = true;
+        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
+
+        computerMove();
+
+        repaint();
+        revalidate();
+    }
+
+    public void winningCheck()
+    {
+        // if the human and computer run out of cards in the same turn, it's a draw
+        // else if the human or computer player runs out of cards, they win
+        if(cd.deck.size() == 0 && cpu.hand.size() == 0 && human.hand.size() == 0)
+        {
+            JOptionPane.showMessageDialog(battlePanel, "It's a draw!");
+        }
+        else if(cd.deck.size() == 0 && human.hand.size() == 0)
+        {
+            JOptionPane.showMessageDialog(battlePanel, "Human player wins");
+        }
+        else if(cd.deck.size() == 0 && cpu.hand.size() == 0)
+        {
+            JOptionPane.showMessageDialog(battlePanel, "Computer player wins");
+        }
+    }
+
+    private void computerMove(){
+
+        winningCheck();
+
+        int index;
+
+        // if the computer can currently attack
+        if(cpu.isAttack)
+        {
+            if(cpu.isOffense)
+            {
+                // if it's the first move in the current turn
+                if(turnCards.size() == 0)
+                {
+                    index = cpu.attack(turnCards);
+                    // if there is no card to play
+                    // (shouldn't happen but just in case)
+                    if(index == -1)
+                    {
+                        clearTurnLabels();
+
+                        refillHand(cpu);
+
+                        cpu.isAttack = false;
+                        cpu.isOffense = false;
+                        human.isAttack = true;
+                        human.isOffense = true;
+
+                        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
+
+                        return;
+                    }
+                }
+                // if it's the not the first move in the current turn
+                else
+                {
+                    index = cpu.addExtraAttackCards(turnCards, human.hand, cd);
+                    if(index == -1)
+                    {
+                        clearTurnLabels();
+
+                        refillHand(human);
+                        refillHand(cpu);
+
+                        turnCards.removeAllElements();
+
+                        cpu.isAttack = false;
+                        cpu.isOffense = false;
+                        human.isAttack = true;
+                        human.isOffense = true;
+
+                        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
+
+                        return;
+                    }
+                }
+
+                // display the card played in battlePanel
+                JLabel cardLabel = new JLabel(turnCards.lastElement().getIcon());
+                attackCards.elementAt(attackCardPosition).setIcon(cardLabel.getIcon());
+                attackCardPosition++;
+
+                computerHandPanel.remove(computerHandLabels.elementAt(index));
+                computerHandLabels.removeElementAt(index);
+
+                computerHandPanel.revalidate();
+                computerHandPanel.repaint();
+
+                this.revalidate();
+
+                // set the cpu to not be able to attack
+                cpu.isAttack = !cpu.isAttack;
+                human.isAttack = !human.isAttack;
+            }
+            // if the computer player is defending
+            else
+            {
+                // if there are cards currently in play
+                if (turnCards.size() > 0){
+
+                    // get the index of the card the computer wants to defend with
+                    index = cpu.defend(turnCards.lastElement(), turnCards);
+
+                    // if the cpu would like to defend, play the card
+                    if (index != -1){
+
+                        // display the card the computer played
+                        defenceCards.elementAt(defenceCardPosition)
+                                .setIcon(turnCards.lastElement().getIcon());
+                        defenceCardPosition++;
+
+                        computerHandPanel.remove(computerHandLabels.elementAt(index));
+                        computerHandLabels.removeElementAt(index);
+                        computerHandPanel.revalidate();
+                        computerHandPanel.repaint();
+
+                        this.revalidate();
+
+                        // set the computer to not be able to attack yet
+                        cpu.isAttack = !cpu.isAttack;
+                        human.isAttack = !human.isAttack;
+                    }
+                    // if the cpu would like to pass, take all cards currently in play
+                    else {
+                        takeTurnCards(cpu);
+                        refillHand(human);
+
+                        remainingCards.setText("<html>Remaining cards: " + cd.deck.size() + "<html>");
+
+                        human.isAttack = true;
+                        cpu.isAttack = false;
+
+                        clearTurnLabels();
+                    }
+                }
+            }
+        }
+        winningCheck();
+    }
+
+    private void getTurnOrder()
     {
         Card humanBestCard = new Card(14, trumpSuit),
                 cpuBestCard = new Card(14, trumpSuit);
 
+        // finds both players' lowest rank cards
+        // which are of the trump suit
         for(int i = 0; i < 6; i++)
         {
             if(human.hand.elementAt(i).getCardSuit() == trumpSuit
@@ -198,111 +691,70 @@ public class Game extends JFrame
             {
                 humanBestCard = human.hand.elementAt(i);
             }
-            if(computer.hand.elementAt(i).getCardSuit() == trumpSuit
-                    && cpuBestCard.getRank() > computer.hand.elementAt(i).getRank())
+            if(cpu.hand.elementAt(i).getCardSuit() == trumpSuit
+                    && cpuBestCard.getRank() > cpu.hand.elementAt(i).getRank())
             {
-                cpuBestCard = computer.hand.elementAt(i);
+                cpuBestCard = cpu.hand.elementAt(i);
             }
         }
 
-        // TODO: add turn-based functionality
-        // currently, turns do nothing. player always goes first
+        // compare their best cards
         if(humanBestCard.getRank() < cpuBestCard.getRank())
         {
-            human.setTurn(1);
-            computer.setTurn(2);
+            human.isAttack = true;
+            human.isOffense = true;
+
+            cpu.isAttack = false;
+            cpu.isOffense = false;
         }
         else
         {
-            computer.setTurn(1);
-            human.setTurn(2);
+            human.isAttack = false;
+            human.isOffense = false;
+
+            cpu.isAttack = true;
+            cpu.isOffense = true;
         }
     }
 
-    private boolean playerAttackBot(HumanPlayer humanAttacker, ComputerPlayer cpuDefender)
+    private boolean validMoveCheck(Card cardToPlay, Vector<Card> turnCards)
     {
-
-        System.out.println("What do you wanna do? Press 0 to pass.");
-        Scanner playerScan = new Scanner(System.in);
-        int playerChoice = playerScan.nextInt();
-        if(playerChoice == 0)
-        {
-            return false;
-        }
-        Card attackerChoice = humanAttacker.hand.elementAt(playerChoice - 1);
-        System.out.println("You chose " + attackerChoice.printCard());
-        humanAttacker.playCard(turnCards, attackerChoice);
-
-        if(!cpuDefender.defend(attackerChoice, turnCards))
-        {
-            System.out.println("The bot passes its turn.");
-            for(int i = 0; i < turnCards.size(); i++)
-            {
-                cpuDefender.hand.add(turnCards.elementAt(i));
-            }
-            return false;
-        }
-
-        System.out.println("The CPU (defender) chose " + turnCards.lastElement().printCard());
-        return true;
-    }
-
-    private boolean botAttackPlayer(HumanPlayer humanDefender, ComputerPlayer cpuAttacker)
-    {
-        cpuAttacker.attack(turnCards);
-        System.out.println("The CPU (attacker) chose " + turnCards.lastElement().printCard());
-
-        System.out.println("What do you wanna do? Press 0 to pass.");
-        Scanner playerScan = new Scanner(System.in);
-        int playerChoice = playerScan.nextInt();
-        if(playerChoice == 0)
-        {
-            System.out.println("You chose to pass.");
-            for(int i = 0; i < turnCards.size(); i++)
-            {
-                humanDefender.hand.add(turnCards.elementAt(i));
-            }
-            return false;
-        }
-
-        Card defenderChoice = humanDefender.hand.elementAt(playerChoice - 1);
-        while(!validMoveCheck(turnCards.lastElement(), defenderChoice))
-        {
-            System.out.println("You can't do that");
-            playerChoice = playerScan.nextInt();
-            if(playerChoice == 0)
-            {
-                System.out.println("You chose to pass.");
-                for(int i = 0; i < turnCards.size(); i++)
-                {
-                    humanDefender.hand.add(turnCards.elementAt(i));
-                }
-                return false;
-            }
-
-            defenderChoice = humanDefender.hand.elementAt(playerChoice - 1);
-        }
-        System.out.println("You played " + defenderChoice.printCard());
-        humanDefender.playCard(turnCards, defenderChoice);
-
-        return true;
-    }
-
-    private boolean validMoveCheck(Card attackerCard, Card defenderCard)
-    {
-        // TODO: review this. logic is off
-        // maybe walk through vector of cards in play
-        // and add each rank to a new array?
-        // then check the validity of the play using that
-        // and if the suit matches the current suit
-        if(attackerCard.getCardSuit() == defenderCard.getCardSuit()
-                && defenderCard.getRank() > attackerCard.getRank())
+        if(turnCards.isEmpty())
         {
             return true;
         }
-        // returns if the card's suit is the trump suit
-        // if true, we can assume the move is valid
-        // if false, the move is assumed to be invalid
-        else return defenderCard.getCardSuit() == trumpSuit;
+
+        Card lastPlayedCard = turnCards.lastElement();
+
+        // we're defending
+        if(turnCards.size() % 2 == 1)
+        {
+            if(lastPlayedCard.getCardSuit() == cardToPlay.getCardSuit() 
+                    && lastPlayedCard.getRank() < cardToPlay.getRank())
+            {
+                return true;
+            }
+            else if(lastPlayedCard.getCardSuit() != trumpSuit
+                    && cardToPlay.getCardSuit() == trumpSuit)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        // we're attacking
+        else
+        {
+            for(Card turnCard : turnCards)
+            {
+                if(turnCard.getRank() == cardToPlay.getRank())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
