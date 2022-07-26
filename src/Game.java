@@ -72,6 +72,10 @@ public class Game extends JFrame
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // sets game's icon in the taskbar and toolbar
+        Image img = Toolkit.getDefaultToolkit().getImage(Game.class.getResource("/resources/durak_icon.png"));
+        setIconImage(img);
+
         // setting up panels in game
         computerHandPanel.setLayout(new FlowLayout());
         computerHandPanel.setBackground(Color.GRAY);
