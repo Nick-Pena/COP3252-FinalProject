@@ -27,6 +27,7 @@ The following is the separation of work:
 Nicholas
 - Implemented event handling for the cards, menu options, and for the pass button.
 - Added logic for validation of the human player's moves.
+
 Evgeniya
 - Set up overall game UI (panel, positions within panels, elements within panels, etc).
 - Added logic for the computer player to use its cards in accordance to the game rules.
