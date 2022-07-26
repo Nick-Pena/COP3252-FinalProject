@@ -7,6 +7,10 @@ We chose to create a Java version of Durak, a Russian card game. We exclusively 
 
 [Click here to see the rules of the game.](https://gathertogethergames.com/durak)
 
+# Running the Game
+
+This project was made on Java 17, so any version before and including it will work for compilation. Either use an IDE of your choice, or if you have a JDK installed you can compile it from the /src/ folder. **Game.java** contains the main class for running the game.
+
 # Description and UI Explanations
 
 At the center of the screen you can see the currently played cards. At the bottom of the screen is your hand, at the top of the screen is your opponent's hand. To the left is the trump card displayed underneath the remaining deck. At the bottom left there is a button to pass your turn. There is a menu bar at the top for customization.
