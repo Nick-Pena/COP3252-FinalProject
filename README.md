@@ -1,6 +1,6 @@
 COP3252 Final Project: Durak
 ======
-Made by [Nicholas Pena](https://github.com/Nick-Pena) & [Evgeniya Kalashnikova](https://github.com/evginny).
+Made by [Nicholas Pena](https://github.com/Nick-Pena) & [Ginny Allen](https://github.com/evginny).
 
 # Project Overview
 We chose to create a Java version of Durak, a Russian card game. We exclusively used a mix of the Swing and AWT Java libraries for the game's GUI and event handling.
@@ -33,7 +33,7 @@ Nicholas
 - Implemented event handling for the cards, menu options, and for the pass button.
 - Added logic for validation of the human player's moves.
 
-Evgeniya
+Ginny
 - Set up overall game UI (panel, positions within panels, elements within panels, etc).
 - Added logic for the computer player to use its cards in accordance to the game rules.
 
